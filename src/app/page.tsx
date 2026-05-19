@@ -3,9 +3,11 @@
 import { LineChart } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
+import LanguageToggle from "@/components/LanguageToggle";
 import NewsFeed from "@/components/NewsFeed";
 import SearchForm from "@/components/SearchForm";
 import SummarySection from "@/components/SummarySection";
+import { LanguageProvider, useLanguage } from "@/lib/i18n";
 import type {
   NewsArticle,
   PartialSummary,
@@ -21,7 +23,8 @@ function isStreamChunk(value: unknown): value is StreamChunk {
   );
 }
 
-export default function Home() {
+function HomeContent() {
+  const { t, language } = useLanguage();
   const [ticker, setTicker] = useState<string | null>(null);
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [summary, setSummary] = useState<PartialSummary | null>(null);
@@ -50,7 +53,7 @@ export default function Home() {
         const res = await fetch("/api/summarize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ticker: nextTicker, provider }),
+          body: JSON.stringify({ ticker: nextTicker, provider, language }),
           signal: controller.signal,
         });
 
@@ -59,8 +62,9 @@ export default function Home() {
             .json()
             .then((j: { error?: string }) => j.error)
             .catch(() => null);
-          setNewsError(message ?? `Request failed (${res.status})`);
-          setSummaryError(message ?? `Request failed (${res.status})`);
+          const fallback = `${t("requestFailed")} (${res.status})`;
+          setNewsError(message ?? fallback);
+          setSummaryError(message ?? fallback);
           setIsStreaming(false);
           return;
         }
@@ -115,7 +119,7 @@ export default function Home() {
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         const message =
-          err instanceof Error ? err.message : "Unexpected error";
+          err instanceof Error ? err.message : t("requestFailed");
         setSummaryError(message);
         setNewsError(message);
       } finally {
@@ -125,22 +129,25 @@ export default function Home() {
         }
       }
     },
-    [],
+    [language, t],
   );
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:py-20">
+      <div className="flex justify-end">
+        <LanguageToggle />
+      </div>
+
       <header className="flex flex-col items-center gap-5 text-center">
         <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-300">
           <LineChart className="size-3.5" aria-hidden="true" />
-          AI-powered market briefings
+          {t("headerBadge")}
         </span>
         <h1 className="max-w-2xl text-balance text-4xl font-semibold tracking-tight text-zinc-50 sm:text-5xl">
-          Fintech Summarizer
+          {t("appTitle")}
         </h1>
         <p className="max-w-xl text-balance text-zinc-400">
-          Type any stock or crypto ticker and get the latest 5 articles plus a
-          live, AI-generated market summary in seconds.
+          {t("appSubtitle")}
         </p>
         <div className="w-full max-w-2xl pt-2">
           <SearchForm isLoading={isStreaming} onSubmit={handleSubmit} />
@@ -162,5 +169,13 @@ export default function Home() {
         error={summaryError}
       />
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <LanguageProvider>
+      <HomeContent />
+    </LanguageProvider>
   );
 }

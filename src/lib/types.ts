@@ -26,6 +26,7 @@ export const summarizeRequestSchema = z.object({
     .max(10, "Ticker too long")
     .regex(/^[A-Za-z0-9.\-]+$/, "Invalid ticker"),
   provider: z.enum(["anthropic", "openai"]),
+  language: z.enum(["en", "es"]).default("en"),
 });
 
 export type SummarizeRequest = z.infer<typeof summarizeRequestSchema>;

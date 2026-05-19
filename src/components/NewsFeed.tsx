@@ -1,6 +1,9 @@
+"use client";
+
 import { Newspaper } from "lucide-react";
 
 import NewsCard from "@/components/NewsCard";
+import { useLanguage } from "@/lib/i18n";
 import type { NewsArticle } from "@/lib/types";
 
 interface NewsFeedProps {
@@ -33,6 +36,8 @@ export default function NewsFeed({
   isLoading,
   error,
 }: NewsFeedProps) {
+  const { t } = useLanguage();
+
   return (
     <section aria-labelledby="news-heading" className="w-full">
       <div className="mb-4 flex items-baseline justify-between gap-4">
@@ -41,7 +46,7 @@ export default function NewsFeed({
           className="flex items-center gap-2 text-lg font-semibold text-zinc-100"
         >
           <Newspaper className="size-5 text-emerald-400" aria-hidden="true" />
-          Latest news
+          {t("newsHeading")}
           {ticker ? (
             <span className="text-zinc-500">
               · <span className="font-mono text-emerald-300">{ticker}</span>
@@ -50,7 +55,9 @@ export default function NewsFeed({
         </h2>
         {articles.length > 0 ? (
           <span className="text-xs text-zinc-500">
-            {articles.length} article{articles.length === 1 ? "" : "s"}
+            {articles.length === 1
+              ? t("articleCountSingular")
+              : t("articleCountPlural", { count: articles.length })}
           </span>
         ) : null}
       </div>
@@ -68,8 +75,8 @@ export default function NewsFeed({
       ) : articles.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 px-5 py-10 text-center text-sm text-zinc-500">
           {ticker
-            ? `No articles found for ${ticker}.`
-            : "Enter a ticker above to load the latest news."}
+            ? t("noArticles", { ticker })
+            : t("enterTicker")}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

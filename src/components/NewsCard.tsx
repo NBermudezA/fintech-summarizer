@@ -1,15 +1,18 @@
+"use client";
+
 import { ExternalLink } from "lucide-react";
 
+import { useLanguage } from "@/lib/i18n";
 import type { NewsArticle } from "@/lib/types";
 
 interface NewsCardProps {
   article: NewsArticle;
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -19,6 +22,9 @@ function formatDate(iso: string): string {
 }
 
 export default function NewsCard({ article }: NewsCardProps) {
+  const { language, t } = useLanguage();
+  const locale = language === "es" ? "es-ES" : "en-US";
+
   return (
     <a
       href={article.url}
@@ -31,7 +37,7 @@ export default function NewsCard({ article }: NewsCardProps) {
           {article.source.name}
         </span>
         <span className="shrink-0 text-zinc-500">
-          {formatDate(article.publishedAt)}
+          {formatDate(article.publishedAt, locale)}
         </span>
       </div>
 
@@ -46,7 +52,7 @@ export default function NewsCard({ article }: NewsCardProps) {
       ) : null}
 
       <div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-zinc-500 transition-colors group-hover:text-emerald-400">
-        Read article
+        {t("readArticle")}
         <ExternalLink className="size-3.5" aria-hidden="true" />
       </div>
     </a>

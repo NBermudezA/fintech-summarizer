@@ -1,6 +1,12 @@
+"use client";
+
 import { MessageSquare, Send, Sparkles } from "lucide-react";
 
+import { useLanguage } from "@/lib/i18n";
+
 export default function ChatPlaceholder() {
+  const { t } = useLanguage();
+
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60">
       <header className="flex items-center justify-between border-b border-zinc-800/80 px-5 py-3">
@@ -9,10 +15,10 @@ export default function ChatPlaceholder() {
             className="size-4 text-emerald-400"
             aria-hidden="true"
           />
-          Ask follow-up questions
+          {t("chatTitle")}
         </div>
         <span className="rounded-full bg-zinc-800/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-          Coming soon
+          {t("chatBadge")}
         </span>
       </header>
 
@@ -24,11 +30,10 @@ export default function ChatPlaceholder() {
               aria-hidden="true"
             />
           </div>
-          <p className="text-sm font-medium text-zinc-300">Chat coming soon</p>
-          <p className="mt-1 text-xs text-zinc-500">
-            You&apos;ll be able to ask Claude about the articles above and get
-            grounded answers.
+          <p className="text-sm font-medium text-zinc-300">
+            {t("chatComingSoon")}
           </p>
+          <p className="mt-1 text-xs text-zinc-500">{t("chatDescription")}</p>
         </div>
       </div>
 
@@ -37,14 +42,14 @@ export default function ChatPlaceholder() {
           <textarea
             disabled
             rows={1}
-            placeholder="Ask anything about the summary…"
+            placeholder={t("chatPlaceholder")}
             className="flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none disabled:cursor-not-allowed"
-            aria-label="Chat input (disabled)"
+            aria-label={t("chatInputLabel")}
           />
           <button
             type="button"
             disabled
-            aria-label="Send message"
+            aria-label={t("sendLabel")}
             className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-zinc-500 disabled:cursor-not-allowed"
           >
             <Send className="size-4" aria-hidden="true" />

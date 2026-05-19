@@ -1,7 +1,10 @@
+"use client";
+
 import { Activity, Lightbulb } from "lucide-react";
 
 import ChatPlaceholder from "@/components/ChatPlaceholder";
 import SentimentBadge from "@/components/SentimentBadge";
+import { useLanguage } from "@/lib/i18n";
 import type { PartialSummary } from "@/lib/types";
 
 interface SummarySectionProps {
@@ -37,6 +40,7 @@ export default function SummarySection({
   hasStarted,
   error,
 }: SummarySectionProps) {
+  const { t } = useLanguage();
   const showSkeleton = isStreaming && !summary?.marketOverview;
   const headline = summary?.headline;
   const overview = summary?.marketOverview;
@@ -55,7 +59,7 @@ export default function SummarySection({
             className="flex items-center gap-2 text-lg font-semibold text-zinc-100"
           >
             <Activity className="size-5 text-emerald-400" aria-hidden="true" />
-            AI summary
+            {t("summaryHeading")}
             {ticker ? (
               <span className="text-zinc-500">
                 · <span className="font-mono text-emerald-300">{ticker}</span>
@@ -70,9 +74,7 @@ export default function SummarySection({
             {error}
           </div>
         ) : !hasStarted ? (
-          <p className="text-sm text-zinc-500">
-            Submit a ticker above to generate a market summary.
-          </p>
+          <p className="text-sm text-zinc-500">{t("submitHint")}</p>
         ) : showSkeleton ? (
           <SummarySkeleton />
         ) : (
@@ -96,7 +98,7 @@ export default function SummarySection({
               <div className="space-y-2">
                 <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   <Lightbulb className="size-3.5" aria-hidden="true" />
-                  Key insights
+                  {t("keyInsights")}
                 </h4>
                 <ul className="space-y-2">
                   {insights.map((insight, i) => (

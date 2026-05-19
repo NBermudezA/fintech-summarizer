@@ -50,13 +50,22 @@ async function fetchArticles(ticker: string): Promise<NewsArticle[]> {
   }));
 }
 
-function buildPrompt(ticker: string, articles: NewsArticle[]): string {
+function buildPrompt(
+  ticker: string,
+  articles: NewsArticle[],
+  language: "en" | "es",
+): string {
   const formatted = articles
     .map(
       (a, i) =>
         `[${i + 1}] ${a.title}\nSource: ${a.source.name}\nPublished: ${a.publishedAt}\nDescription: ${a.description ?? "(no description)"}`,
     )
     .join("\n\n");
+
+  const languageInstruction =
+    language === "es"
+      ? "IMPORTANT: Write ALL field values (headline, marketOverview, keyInsights items) in natural, fluent Spanish. The JSON keys and the sentiment enum values stay in English."
+      : "Write all field values in clear, professional English.";
 
   return `You are a financial analyst writing a daily briefing on ${ticker.toUpperCase()}.
 
@@ -67,6 +76,8 @@ Produce a structured summary with:
 - marketOverview: 2–3 sentences combining the broader macro/sector context with the specific situation for ${ticker.toUpperCase()}, written for a finance-literate reader.
 - keyInsights: exactly 3 short, sharp bullet-style takeaways an investor would care about.
 - sentiment: one of "positive", "negative", or "neutral" reflecting the overall tone of these articles toward ${ticker.toUpperCase()}.
+
+${languageInstruction}
 
 ARTICLES:
 ${formatted}`;
@@ -92,7 +103,7 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
-  const { ticker, provider } = parsed.data;
+  const { ticker, provider, language } = parsed.data;
 
   if (provider === "anthropic" && !process.env.ANTHROPIC_API_KEY) {
     return Response.json(
@@ -142,7 +153,7 @@ export async function POST(req: Request): Promise<Response> {
           model: pickModel(provider),
           maxOutputTokens: 600,
           output: Output.object({ schema: summarySchema }),
-          prompt: buildPrompt(ticker, articles),
+          prompt: buildPrompt(ticker, articles, language),
           onError({ error }) {
             console.error("[summarize] streamText error", error);
             streamErrorMessage =
