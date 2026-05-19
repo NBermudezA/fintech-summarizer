@@ -1,65 +1,166 @@
-import Image from "next/image";
+"use client";
+
+import { LineChart } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+
+import NewsFeed from "@/components/NewsFeed";
+import SearchForm from "@/components/SearchForm";
+import SummarySection from "@/components/SummarySection";
+import type {
+  NewsArticle,
+  PartialSummary,
+  Provider,
+  StreamChunk,
+} from "@/lib/types";
+
+function isStreamChunk(value: unknown): value is StreamChunk {
+  if (typeof value !== "object" || value === null) return false;
+  const t = (value as { type?: unknown }).type;
+  return (
+    t === "articles" || t === "object" || t === "done" || t === "error"
+  );
+}
 
 export default function Home() {
+  const [ticker, setTicker] = useState<string | null>(null);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [summary, setSummary] = useState<PartialSummary | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [newsError, setNewsError] = useState<string | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
+
+  const handleSubmit = useCallback(
+    async (nextTicker: string, provider: Provider) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setTicker(nextTicker);
+      setArticles([]);
+      setSummary(null);
+      setNewsError(null);
+      setSummaryError(null);
+      setHasStarted(true);
+      setIsStreaming(true);
+
+      try {
+        const res = await fetch("/api/summarize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ticker: nextTicker, provider }),
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          const message = await res
+            .json()
+            .then((j: { error?: string }) => j.error)
+            .catch(() => null);
+          setNewsError(message ?? `Request failed (${res.status})`);
+          setSummaryError(message ?? `Request failed (${res.status})`);
+          setIsStreaming(false);
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          let sepIndex = buffer.indexOf("\n\n");
+          while (sepIndex !== -1) {
+            const frame = buffer.slice(0, sepIndex);
+            buffer = buffer.slice(sepIndex + 2);
+            sepIndex = buffer.indexOf("\n\n");
+
+            const dataLine = frame
+              .split("\n")
+              .find((line) => line.startsWith("data: "));
+            if (!dataLine) continue;
+
+            const payload = dataLine.slice(6).trim();
+            if (!payload) continue;
+
+            let parsed: unknown;
+            try {
+              parsed = JSON.parse(payload);
+            } catch {
+              continue;
+            }
+            if (!isStreamChunk(parsed)) continue;
+
+            switch (parsed.type) {
+              case "articles":
+                setArticles(parsed.data);
+                break;
+              case "object":
+                setSummary(parsed.data);
+                break;
+              case "error":
+                setSummaryError(parsed.data);
+                break;
+              case "done":
+                break;
+            }
+          }
+        }
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+        const message =
+          err instanceof Error ? err.message : "Unexpected error";
+        setSummaryError(message);
+        setNewsError(message);
+      } finally {
+        if (abortRef.current === controller) {
+          setIsStreaming(false);
+          abortRef.current = null;
+        }
+      }
+    },
+    [],
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:py-20">
+      <header className="flex flex-col items-center gap-5 text-center">
+        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-300">
+          <LineChart className="size-3.5" aria-hidden="true" />
+          AI-powered market briefings
+        </span>
+        <h1 className="max-w-2xl text-balance text-4xl font-semibold tracking-tight text-zinc-50 sm:text-5xl">
+          Fintech Summarizer
+        </h1>
+        <p className="max-w-xl text-balance text-zinc-400">
+          Type any stock or crypto ticker and get the latest 5 articles plus a
+          live, AI-generated market summary in seconds.
+        </p>
+        <div className="w-full max-w-2xl pt-2">
+          <SearchForm isLoading={isStreaming} onSubmit={handleSubmit} />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </header>
+
+      <NewsFeed
+        ticker={ticker}
+        articles={articles}
+        isLoading={isStreaming && articles.length === 0}
+        error={newsError}
+      />
+
+      <SummarySection
+        ticker={ticker}
+        summary={summary}
+        isStreaming={isStreaming}
+        hasStarted={hasStarted}
+        error={summaryError}
+      />
+    </main>
   );
 }
