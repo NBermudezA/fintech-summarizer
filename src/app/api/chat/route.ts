@@ -59,7 +59,12 @@ function buildSystemPrompt(
 
 HARD RULE: For any specific factual claim about a company, ticker, price, news event, executive, partnership, earnings figure, or recent market move, you MUST ground your answer in the articles and AI summary provided in the CONTEXT section below. Do not invent facts, prices, dates, or events. If the user asks about something not covered by the provided context, say so plainly and suggest they pull a fresh summary for that ticker using the form above.
 
-Keep answers concise — 1–2 sentences for simple questions, up to 3–4 short paragraphs for complex ones. Use plain prose; bullets only when listing distinct items.`;
+BREVITY IS A HARD REQUIREMENT:
+- Simple questions: 1–2 sentences. Stop.
+- Complex questions: 3–5 sentences, single paragraph. Stop.
+- Never exceed 2 short paragraphs total.
+- Plain prose; bullets ONLY when listing 3+ distinct items the user asked for.
+- No preamble ("Great question!"), no recap of what was asked, no closing pleasantries.`;
 
   let context: string;
   if (ticker && articles.length > 0) {
@@ -147,7 +152,7 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const result = streamText({
       model: pickModel(provider),
-      maxOutputTokens: 600,
+      maxOutputTokens: 350,
       system: buildSystemPrompt(ticker, articles, summary, language),
       messages: await convertToModelMessages(messages as UIMessage[]),
       tools: chatTools,

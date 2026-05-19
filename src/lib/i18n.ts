@@ -34,6 +34,7 @@ export const TRANSLATIONS = {
     stocksGroup: "Stocks",
     cryptoGroup: "Crypto",
     languageLabel: "Language",
+    recentLabel: "Recent",
 
     newsHeading: "Latest news",
     articleCountSingular: "1 article",
@@ -84,6 +85,7 @@ export const TRANSLATIONS = {
     stocksGroup: "Acciones",
     cryptoGroup: "Cripto",
     languageLabel: "Idioma",
+    recentLabel: "Recientes",
 
     newsHeading: "Últimas noticias",
     articleCountSingular: "1 artículo",

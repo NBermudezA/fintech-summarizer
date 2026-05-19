@@ -16,19 +16,12 @@ import type { Provider } from "@/lib/types";
 interface SearchFormProps {
   isLoading: boolean;
   provider: Provider;
-  onProviderChange: (next: Provider) => void;
   onSubmit: (ticker: string, provider: Provider) => void;
 }
-
-const PROVIDER_OPTIONS: { value: Provider; label: string }[] = [
-  { value: "anthropic", label: "Claude" },
-  { value: "openai", label: "GPT-4o" },
-];
 
 export default function SearchForm({
   isLoading,
   provider,
-  onProviderChange,
   onSubmit,
 }: SearchFormProps) {
   const { t } = useLanguage();
@@ -83,7 +76,7 @@ export default function SearchForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-2 shadow-2xl shadow-emerald-500/5 backdrop-blur"
+      className="relative z-40 w-full rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-2 shadow-2xl shadow-emerald-500/5 backdrop-blur"
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -127,7 +120,7 @@ export default function SearchForm({
               <div
                 role="listbox"
                 aria-label={t("popularPanelLabel")}
-                className="absolute right-0 top-full z-20 mt-2 w-72 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/95 shadow-2xl backdrop-blur"
+                className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/95 shadow-2xl backdrop-blur"
               >
                 <PickerGroup
                   label={t("stocksGroup")}
@@ -144,42 +137,13 @@ export default function SearchForm({
           </div>
         </div>
 
-        <div className="flex items-stretch gap-2 sm:items-center">
-          <div
-            role="radiogroup"
-            aria-label={t("providerLabel")}
-            className="inline-flex rounded-xl bg-zinc-800/60 p-1"
-          >
-            {PROVIDER_OPTIONS.map((opt) => {
-              const active = provider === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => onProviderChange(opt.value)}
-                  disabled={isLoading}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed ${
-                    active
-                      ? "bg-zinc-100 text-zinc-900"
-                      : "text-zinc-400 hover:text-zinc-200"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading || ticker.trim().length === 0}
-            className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
-          >
-            {isLoading ? t("analyzing") : t("analyze")}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={isLoading || ticker.trim().length === 0}
+          className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+        >
+          {isLoading ? t("analyzing") : t("analyze")}
+        </button>
       </div>
     </form>
   );

@@ -1,9 +1,8 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
 import { MessageSquare, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 
 import {
   Conversation,
@@ -40,30 +39,7 @@ export default function Chat({
   const { language, t } = useLanguage();
   const [input, setInput] = useState("");
 
-  const latest = useRef({ provider, language, ticker, articles, summary });
-  useEffect(() => {
-    latest.current = { provider, language, ticker, articles, summary };
-  }, [provider, language, ticker, articles, summary]);
-
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: "/api/chat",
-        prepareSendMessagesRequest: ({ messages }) => ({
-          body: {
-            messages,
-            provider: latest.current.provider,
-            language: latest.current.language,
-            ticker: latest.current.ticker,
-            articles: latest.current.articles,
-            summary: latest.current.summary,
-          },
-        }),
-      }),
-    [],
-  );
-
-  const { messages, sendMessage, status, error, stop } = useChat({ transport });
+  const { messages, sendMessage, status, error, stop } = useChat();
 
   const isGenerating = status === "streaming" || status === "submitted";
   const grounded = ticker !== null && articles.length > 0;
@@ -153,7 +129,18 @@ export default function Chat({
             event.preventDefault();
             const text = message.text.trim();
             if (!text || isGenerating) return;
-            sendMessage({ text });
+            sendMessage(
+              { text },
+              {
+                body: {
+                  provider,
+                  language,
+                  ticker,
+                  articles,
+                  summary,
+                },
+              },
+            );
             setInput("");
           }}
           className="flex items-end gap-2 rounded-xl bg-zinc-900/80 p-2 ring-1 ring-inset ring-zinc-800"

@@ -8,6 +8,7 @@ import NewsFeed from "@/components/NewsFeed";
 import SearchForm from "@/components/SearchForm";
 import SummarySection from "@/components/SummarySection";
 import { LanguageProvider, useLanguage } from "@/lib/i18n";
+import { useRecentTickers } from "@/lib/recent-tickers";
 import type {
   NewsArticle,
   PartialSummary,
@@ -28,12 +29,13 @@ function HomeContent() {
   const [ticker, setTicker] = useState<string | null>(null);
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [summary, setSummary] = useState<PartialSummary | null>(null);
-  const [provider, setProvider] = useState<Provider>("anthropic");
+  const provider: Provider = "anthropic";
   const [isStreaming, setIsStreaming] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [newsError, setNewsError] = useState<string | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
 
+  const { recentTickers, addTicker } = useRecentTickers();
   const abortRef = useRef<AbortController | null>(null);
 
   const handleSubmit = useCallback(
@@ -49,6 +51,7 @@ function HomeContent() {
       setSummaryError(null);
       setHasStarted(true);
       setIsStreaming(true);
+      addTicker(nextTicker);
 
       try {
         const res = await fetch("/api/summarize", {
@@ -134,7 +137,7 @@ function HomeContent() {
         }
       }
     },
-    [language, t],
+    [language, t, addTicker],
   );
 
   return (
@@ -158,10 +161,28 @@ function HomeContent() {
           <SearchForm
             isLoading={isStreaming}
             provider={provider}
-            onProviderChange={setProvider}
             onSubmit={handleSubmit}
           />
         </div>
+
+        {recentTickers.length > 0 ? (
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+            <span className="font-semibold uppercase tracking-wider text-zinc-500">
+              {t("recentLabel")}
+            </span>
+            {recentTickers.map((tk) => (
+              <button
+                key={tk}
+                type="button"
+                disabled={isStreaming}
+                onClick={() => handleSubmit(tk, provider)}
+                className="rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 font-mono font-medium text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {tk}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </header>
 
       <NewsFeed
