@@ -51,13 +51,19 @@ export const TRANSLATIONS = {
     sentimentNeutral: "NEUTRAL",
 
     chatTitle: "Ask follow-up questions",
-    chatBadge: "Coming soon",
-    chatComingSoon: "Chat coming soon",
-    chatDescription:
-      "You'll be able to ask Claude about the articles above and get grounded answers.",
-    chatPlaceholder: "Ask anything about the summary…",
-    chatInputLabel: "Chat input (disabled)",
+    chatBadge: "Financial advisor",
+    chatEmptyTitleGrounded: "Ask about {ticker}",
+    chatEmptyDescriptionGrounded:
+      "Ask anything about the articles or summary above. Answers are grounded in what's loaded.",
+    chatEmptyTitleUngrounded: "Ask a financial question",
+    chatEmptyDescriptionUngrounded:
+      "Pull a ticker above for grounded answers, or ask a general finance question.",
+    chatPlaceholderGrounded: "Ask about {ticker}…",
+    chatPlaceholderUngrounded: "Ask anything about finance…",
+    chatInputLabel: "Chat input",
     sendLabel: "Send message",
+    stopLabel: "Stop",
+    chatErrorPrefix: "Chat error",
 
     readArticle: "Read article",
     requestFailed: "Request failed",
@@ -95,13 +101,19 @@ export const TRANSLATIONS = {
     sentimentNeutral: "NEUTRAL",
 
     chatTitle: "Haz preguntas de seguimiento",
-    chatBadge: "Próximamente",
-    chatComingSoon: "Chat próximamente",
-    chatDescription:
-      "Podrás preguntarle a Claude sobre los artículos de arriba y obtener respuestas fundamentadas.",
-    chatPlaceholder: "Pregunta cualquier cosa sobre el resumen…",
-    chatInputLabel: "Entrada de chat (deshabilitada)",
+    chatBadge: "Asesor financiero",
+    chatEmptyTitleGrounded: "Pregunta sobre {ticker}",
+    chatEmptyDescriptionGrounded:
+      "Pregunta cualquier cosa sobre los artículos o el resumen de arriba. Las respuestas están fundamentadas en lo cargado.",
+    chatEmptyTitleUngrounded: "Haz una pregunta financiera",
+    chatEmptyDescriptionUngrounded:
+      "Carga un ticker arriba para respuestas fundamentadas, o haz una pregunta general de finanzas.",
+    chatPlaceholderGrounded: "Pregunta sobre {ticker}…",
+    chatPlaceholderUngrounded: "Pregunta cualquier cosa sobre finanzas…",
+    chatInputLabel: "Entrada de chat",
     sendLabel: "Enviar mensaje",
+    stopLabel: "Detener",
+    chatErrorPrefix: "Error de chat",
 
     readArticle: "Leer artículo",
     requestFailed: "La solicitud falló",

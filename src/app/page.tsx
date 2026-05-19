@@ -28,6 +28,7 @@ function HomeContent() {
   const [ticker, setTicker] = useState<string | null>(null);
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [summary, setSummary] = useState<PartialSummary | null>(null);
+  const [provider, setProvider] = useState<Provider>("anthropic");
   const [isStreaming, setIsStreaming] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [newsError, setNewsError] = useState<string | null>(null);
@@ -36,7 +37,7 @@ function HomeContent() {
   const abortRef = useRef<AbortController | null>(null);
 
   const handleSubmit = useCallback(
-    async (nextTicker: string, provider: Provider) => {
+    async (nextTicker: string, nextProvider: Provider) => {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -53,7 +54,11 @@ function HomeContent() {
         const res = await fetch("/api/summarize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ticker: nextTicker, provider, language }),
+          body: JSON.stringify({
+            ticker: nextTicker,
+            provider: nextProvider,
+            language,
+          }),
           signal: controller.signal,
         });
 
@@ -150,7 +155,12 @@ function HomeContent() {
           {t("appSubtitle")}
         </p>
         <div className="w-full max-w-2xl pt-2">
-          <SearchForm isLoading={isStreaming} onSubmit={handleSubmit} />
+          <SearchForm
+            isLoading={isStreaming}
+            provider={provider}
+            onProviderChange={setProvider}
+            onSubmit={handleSubmit}
+          />
         </div>
       </header>
 
@@ -167,6 +177,8 @@ function HomeContent() {
         isStreaming={isStreaming}
         hasStarted={hasStarted}
         error={summaryError}
+        articles={articles}
+        provider={provider}
       />
     </main>
   );

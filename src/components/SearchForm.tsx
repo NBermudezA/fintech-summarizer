@@ -15,6 +15,8 @@ import type { Provider } from "@/lib/types";
 
 interface SearchFormProps {
   isLoading: boolean;
+  provider: Provider;
+  onProviderChange: (next: Provider) => void;
   onSubmit: (ticker: string, provider: Provider) => void;
 }
 
@@ -23,10 +25,14 @@ const PROVIDER_OPTIONS: { value: Provider; label: string }[] = [
   { value: "openai", label: "GPT-4o" },
 ];
 
-export default function SearchForm({ isLoading, onSubmit }: SearchFormProps) {
+export default function SearchForm({
+  isLoading,
+  provider,
+  onProviderChange,
+  onSubmit,
+}: SearchFormProps) {
   const { t } = useLanguage();
   const [ticker, setTicker] = useState("");
-  const [provider, setProvider] = useState<Provider>("anthropic");
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
 
@@ -152,7 +158,7 @@ export default function SearchForm({ isLoading, onSubmit }: SearchFormProps) {
                   type="button"
                   role="radio"
                   aria-checked={active}
-                  onClick={() => setProvider(opt.value)}
+                  onClick={() => onProviderChange(opt.value)}
                   disabled={isLoading}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed ${
                     active

@@ -41,12 +41,12 @@ export default function NewsCard({ article }: NewsCardProps) {
         </span>
       </div>
 
-      <h3 className="line-clamp-2 text-base font-semibold leading-snug text-zinc-100 group-hover:text-white">
+      <h3 className="text-base font-semibold leading-snug text-zinc-100 group-hover:text-white">
         {article.title}
       </h3>
 
       {article.description ? (
-        <p className="line-clamp-3 text-sm leading-relaxed text-zinc-400">
+        <p className="max-h-28 overflow-y-auto pr-1 text-sm leading-relaxed text-zinc-400 [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
           {article.description}
         </p>
       ) : null}

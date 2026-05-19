@@ -2,10 +2,10 @@
 
 import { Activity, Lightbulb } from "lucide-react";
 
-import ChatPlaceholder from "@/components/ChatPlaceholder";
+import Chat from "@/components/Chat";
 import SentimentBadge from "@/components/SentimentBadge";
 import { useLanguage } from "@/lib/i18n";
-import type { PartialSummary } from "@/lib/types";
+import type { NewsArticle, PartialSummary, Provider } from "@/lib/types";
 
 interface SummarySectionProps {
   ticker: string | null;
@@ -13,6 +13,8 @@ interface SummarySectionProps {
   isStreaming: boolean;
   hasStarted: boolean;
   error: string | null;
+  articles: NewsArticle[];
+  provider: Provider;
 }
 
 function SummarySkeleton() {
@@ -39,6 +41,8 @@ export default function SummarySection({
   isStreaming,
   hasStarted,
   error,
+  articles,
+  provider,
 }: SummarySectionProps) {
   const { t } = useLanguage();
   const showSkeleton = isStreaming && !summary?.marketOverview;
@@ -52,7 +56,7 @@ export default function SummarySection({
       aria-labelledby="summary-heading"
       className="grid w-full gap-4 lg:grid-cols-[1.6fr_1fr]"
     >
-      <article className="flex flex-col gap-5 rounded-2xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 to-zinc-950/80 p-6">
+      <article className="flex h-[34rem] flex-col gap-5 rounded-2xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 to-zinc-950/80 p-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h2
             id="summary-heading"
@@ -68,6 +72,8 @@ export default function SummarySection({
           </h2>
           <SentimentBadge sentiment={sentiment} />
         </header>
+
+        <div className="flex-1 overflow-y-auto pr-1 [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
 
         {error ? (
           <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-5 py-4 text-sm text-rose-300">
@@ -120,9 +126,15 @@ export default function SummarySection({
             ) : null}
           </div>
         )}
+        </div>
       </article>
 
-      <ChatPlaceholder />
+      <Chat
+        provider={provider}
+        ticker={ticker}
+        articles={articles}
+        summary={summary}
+      />
     </section>
   );
 }
