@@ -4,6 +4,10 @@ AI-powered market briefings. Type a stock or crypto ticker and get the latest 5 
 
 Project 1 of an AI Engineering roadmap, built on Next.js 16 + Vercel AI SDK v6.
 
+## 🚀 Live Demo
+
+**[https://fintech-summarizer.vercel.app/](https://fintech-summarizer.vercel.app/)**
+
 ## Features
 
 - **Live news feed** — last 5 articles for any ticker, fetched from NewsAPI.
