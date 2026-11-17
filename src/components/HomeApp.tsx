@@ -148,12 +148,7 @@ export function HomeContent() {
 
       {hasStarted ? (
         <>
-          <NewsFeed
-            ticker={ticker}
-            articles={articles}
-            isLoading={isStreaming && articles.length === 0}
-            error={newsError}
-          />
+          {/* Briefing first, sources below. */}
           <SummarySection
             ticker={ticker}
             summary={summary}
@@ -162,6 +157,12 @@ export function HomeContent() {
             error={summaryError}
             articles={articles}
             provider={PROVIDER}
+          />
+          <NewsFeed
+            ticker={ticker}
+            articles={articles}
+            isLoading={isStreaming && articles.length === 0}
+            error={newsError}
           />
         </>
       ) : null}

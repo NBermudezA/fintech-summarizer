@@ -37,6 +37,7 @@ export default function NewsFeed({
   error,
 }: NewsFeedProps) {
   const { t } = useLanguage();
+  const hasImages = articles.some((a) => Boolean(a.image));
 
   return (
     <section aria-labelledby="news-heading" className="w-full">
@@ -80,8 +81,13 @@ export default function NewsFeed({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {articles.map((a) => (
-            <NewsCard key={a.url} article={a} />
+          {articles.map((a, i) => (
+            <NewsCard
+              key={a.url}
+              article={a}
+              featured={i === 0 && articles.length % 3 === 2}
+              placeholder={hasImages}
+            />
           ))}
         </div>
       )}

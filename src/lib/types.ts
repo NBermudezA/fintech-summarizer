@@ -12,6 +12,8 @@ export interface NewsArticle {
   url: string;
   publishedAt: string;
   source: { name: string };
+  /** Thumbnail from the publisher (https only), when the provider has one. */
+  image?: string | null;
 }
 
 export const summarizeRequestSchema = z.object({
@@ -35,6 +37,7 @@ export const newsArticleSchema = z.object({
   url: z.string().url().max(2000),
   publishedAt: z.string().max(50),
   source: z.object({ name: z.string().max(200) }),
+  image: z.string().url().max(2000).nullable().optional(),
 });
 
 export const partialSummarySchema = z

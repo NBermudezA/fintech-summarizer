@@ -56,7 +56,7 @@ export default function SummarySection({
       aria-labelledby="summary-heading"
       className="grid w-full gap-4 lg:grid-cols-[1.6fr_1fr]"
     >
-      <article className="flex min-h-[20rem] flex-col gap-5 lg:h-[36rem] rounded-2xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 to-zinc-950/80 p-6">
+      <article className="flex min-h-[20rem] flex-col gap-5 rounded-2xl lg:min-h-[26rem] border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 to-zinc-950/80 p-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h2
             id="summary-heading"
@@ -73,11 +73,7 @@ export default function SummarySection({
           <SentimentBadge sentiment={sentiment} />
         </header>
 
-        <div
-          className="flex-1 pr-1 [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin] lg:overflow-y-auto"
-          tabIndex={0}
-          aria-label={t("summaryHeading")}
-        >
+        <div className="flex-1">
 
         {error ? (
           <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-5 py-4 text-sm text-rose-300">
@@ -139,12 +135,18 @@ export default function SummarySection({
         </div>
       </article>
 
-      <Chat
-        provider={provider}
-        ticker={ticker}
-        articles={articles}
-        summary={summary}
-      />
+      {/* On desktop the chat matches the summary's height (the summary sets
+          the row height; the chat fills it absolutely and scrolls inside). */}
+      <div className="h-[26rem] lg:relative lg:h-auto lg:min-h-[26rem]">
+        <div className="h-full lg:absolute lg:inset-0">
+          <Chat
+            provider={provider}
+            ticker={ticker}
+            articles={articles}
+            summary={summary}
+          />
+        </div>
+      </div>
     </section>
   );
 }

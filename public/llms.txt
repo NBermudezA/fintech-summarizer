@@ -9,7 +9,7 @@
 
 ## How it works
 
-- News: NewsAPI.org, latest English-language articles matching the ticker and company name.
+- News: Finnhub.io — company news tagged with the exact stock symbol (last 7 days); for crypto, Finnhub's crypto market news filtered by coin symbol and name.
 - AI: Claude (Haiku family) via the Vercel AI SDK; structured output validated with Zod and streamed over Server-Sent Events.
 - Stack: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, deployed on Vercel.
 

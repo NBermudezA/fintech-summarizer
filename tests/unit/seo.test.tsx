@@ -70,7 +70,7 @@ describe("crawlability (SEO + GEO)", () => {
     render(<PrivacyPage />);
     expect(screen.getByRole("heading", { name: "Not financial advice" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Privacidad y aviso legal" })).toBeInTheDocument();
-    expect(screen.getAllByText(/NewsAPI\.org/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/Finnhub\.io/).length).toBeGreaterThanOrEqual(2);
   });
 
   it("chat tool registry stays a valid (empty) ToolSet", () => {

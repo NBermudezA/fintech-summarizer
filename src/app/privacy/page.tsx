@@ -35,9 +35,12 @@ export default function PrivacyPage() {
 
         <h2 className="pt-4 text-lg font-semibold text-zinc-100">News content</h2>
         <p>
-          Headlines and short descriptions are retrieved from NewsAPI.org.
-          Articles remain the property of their publishers; we show only the
-          headline, a short excerpt, the source name and a link to the original.
+          Headlines, short summaries and thumbnails are retrieved from
+          Finnhub.io. Articles remain the property of their publishers; we show
+          only the headline, a short excerpt, the source name, the publisher’s
+          thumbnail and a link to the original. Thumbnails load directly from
+          the publisher’s server, which receives a standard image request
+          from your browser (no referrer is sent).
         </p>
 
         <h2 className="pt-4 text-lg font-semibold text-zinc-100">What data we process</h2>
@@ -85,7 +88,7 @@ export default function PrivacyPage() {
           mantener valores o criptoactivos.
         </p>
         <p>
-          Las noticias provienen de NewsAPI.org y pertenecen a sus medios. Los
+          Las noticias provienen de Finnhub.io y pertenecen a sus medios. Los
           tickers y mensajes que envías se procesan en nuestro servidor y en
           Anthropic para generar la respuesta, sin guardarse en una base de datos.
           Tu idioma, tickers recientes y preferencia de cookies se guardan solo

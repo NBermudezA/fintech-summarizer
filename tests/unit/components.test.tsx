@@ -98,6 +98,34 @@ describe("NewsFeed", () => {
   });
 });
 
+describe("NewsCard thumbnail", () => {
+  it("shows the publisher image without referrer and hides it if it fails", () => {
+    const { container } = wrap(
+      <NewsFeed
+        ticker="AAPL"
+        articles={[
+          {
+            title: "With image",
+            description: null,
+            url: "https://x.test/1",
+            publishedAt: "2026-01-02T00:00:00Z",
+            source: { name: "S" },
+            image: "https://img.test/a.jpg",
+          },
+        ]}
+        isLoading={false}
+        error={null}
+      />,
+    );
+    const img = container.querySelector("img")!;
+    expect(img).toHaveAttribute("src", "https://img.test/a.jpg");
+    expect(img).toHaveAttribute("referrerpolicy", "no-referrer");
+    expect(img).toHaveAttribute("alt", "");
+    fireEvent.error(img);
+    expect(container.querySelector("img")).toBeNull();
+  });
+});
+
 describe("SummarySection & SentimentBadge", () => {
   const base = {
     ticker: "AAPL",

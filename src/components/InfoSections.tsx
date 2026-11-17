@@ -53,14 +53,14 @@ export default function InfoSections() {
         </h2>
         <div className="divide-y divide-zinc-800/80 rounded-2xl border border-zinc-800/80">
           {FAQ_KEYS.map(({ q, a }) => (
-            <details key={q} className="group px-5 py-4">
-              <summary className="cursor-pointer list-none text-sm font-medium text-zinc-200 marker:hidden">
+            <details key={q} className="group">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center px-5 py-3 text-sm font-medium text-zinc-200 marker:hidden hover:text-white [&::-webkit-details-marker]:hidden">
                 <span className="mr-2 inline-block text-emerald-400 transition-transform group-open:rotate-90">
                   ›
                 </span>
                 {t(q)}
               </summary>
-              <p className="mt-2 pl-5 text-sm leading-relaxed text-zinc-400">{t(a)}</p>
+              <p className="px-5 pb-4 pl-10 text-sm leading-relaxed text-zinc-400">{t(a)}</p>
             </details>
           ))}
         </div>

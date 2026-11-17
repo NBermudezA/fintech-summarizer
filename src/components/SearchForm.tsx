@@ -120,7 +120,7 @@ export default function SearchForm({
               <div
                 role="listbox"
                 aria-label={t("popularPanelLabel")}
-                className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/95 shadow-2xl backdrop-blur"
+                className="absolute right-0 top-full z-50 mt-2 max-h-[min(26rem,60vh)] w-72 max-w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/60"
               >
                 <PickerGroup
                   label={t("stocksGroup")}
