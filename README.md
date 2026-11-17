@@ -1,142 +1,131 @@
 # Fintech Summarizer
 
-AI-powered market briefings. Type a stock or crypto ticker and get the latest 5 news articles plus a streaming, structured summary written by Claude — with a grounded chat for follow-up questions.
+AI market briefings for any stock or crypto ticker. Type `NVDA` or `BTC` and get a streaming, structured summary written by Claude — headline, market overview, three key insights and sentiment — plus the five source articles and a chat for follow-up questions grounded in them. English and Spanish.
 
-Project 1 of an AI Engineering roadmap, built on Next.js 16 + Vercel AI SDK v6.
+**Live demo:** [fintech-summarizer.vercel.app](https://fintech-summarizer.vercel.app/)
 
-## 🚀 Live Demo
+> Educational project. Nothing in the app is investment advice.
 
-**[https://fintech-summarizer.vercel.app/](https://fintech-summarizer.vercel.app/)**
+## Highlights
 
-## Features
-
-- **Live news feed** — last 5 articles for any ticker, fetched from NewsAPI.
-- **Streaming AI summary** — `streamText` + `Output.object({ schema })` produces a typed object as it streams: headline, market overview, three key insights, sentiment (BULLISH / BEARISH / NEUTRAL).
-- **Grounded chat** — an educational assistant that answers questions about the loaded articles + summary. It will not invent facts, never gives buy/sell/hold advice, and treats article text as untrusted data (prompt-injection hardening).
-- **EN / ES toggle** — switches all UI strings and tells the model to respond in Spanish or English.
-- **Popular ticker dropdown** — curated list of common stocks and crypto with company names, so you don't have to remember symbols.
-- **Search history** — last 5 tickers persisted in `localStorage`; one click to re-run the analysis.
-- **Dark fintech theme** — Tailwind v4, lucide icons, AI Elements primitives for the chat.
-- **Production hardening** — per-IP rate limiting, same-origin checks, bounded request schemas, generic error messages, security headers.
-- **SEO + GEO** — metadata, Open Graph image, `robots.txt` (explicitly allows AI crawlers), `sitemap.xml`, `manifest`, `llms.txt`, JSON-LD (`WebApplication` + `FAQPage`) and crawlable "How it works"/FAQ copy.
-- **Privacy-first analytics** — Google Analytics 4 loads only when `NEXT_PUBLIC_GA_ID` is set **and** the visitor accepts the cookie banner. Events: `analyze_ticker`, `analyze_error`, `chat_message`.
-- **Legal** — "not financial advice" disclaimer in the summary, footer and `/privacy` page (EN/ES).
+- **Streaming structured output** — `streamText` + `Output.object({ schema })` (Vercel AI SDK v6) streams a Zod-typed object over Server-Sent Events; the UI fills in field by field.
+- **Relevant news by construction** — Finnhub company news is tagged with the exact symbol; crypto uses Finnhub's crypto feed filtered by coin symbol and name.
+- **Grounded, safe chat** — answers only from the loaded articles and summary, never gives buy/sell/hold advice, and treats article text as untrusted data (prompt-injection hardening).
+- **Cheap and fast model** — Claude Haiku 5.5 at `effort: "low"`; switchable per environment.
+- **Production hardening** — per-IP rate limits, same-origin checks, bounded request schemas, generic errors, security headers, patched dependencies.
+- **SEO + GEO** — metadata, Open Graph image, `robots.txt` that welcomes AI crawlers, `sitemap.xml`, `llms.txt`, JSON-LD (`WebApplication` + `FAQPage`), crawlable "How it works" and FAQ.
+- **Privacy-first analytics** — Google Analytics 4 loads only when configured **and** the visitor opts in.
+- **Tested** — 91 unit/integration tests (≥95% coverage gate, currently ~99.8% lines) and 22 Playwright E2E tests on desktop + mobile, including axe WCAG 2.1 AA. CI on every push.
 
 ## Stack
 
-- Next.js 16 (App Router, Turbopack) + React 19
-- TypeScript strict, no `any`
-- Tailwind CSS v4
-- Vercel AI SDK v6 (`ai`, `@ai-sdk/anthropic`, `@ai-sdk/react`)
-- Zod 4 for request/response validation
-- [AI Elements](https://ai-elements.dev/) (Conversation, Message, PromptInput) for the chat UI
-- NewsAPI (free tier) for article retrieval
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack), React 19, TypeScript strict |
+| Styling | Tailwind CSS v4, shadcn/ui + AI Elements primitives, lucide icons |
+| AI | Vercel AI SDK v6 (`ai`, `@ai-sdk/anthropic`, `@ai-sdk/react`), Claude Haiku 5.5 |
+| Data | Finnhub (company + crypto news) |
+| Validation | Zod 4 |
+| Analytics | GA4 via `@next/third-parties`, consent-gated |
+| Testing | Vitest + Testing Library (jsdom), Playwright + axe-core |
+| Hosting / CI | Vercel, GitHub Actions |
 
-## Models
+## Architecture at a glance
 
-Set in `src/lib/models.ts`; prompts live in `src/lib/prompts.ts`.
-
-- Default: **`claude-haiku-5-5`** (current Haiku, $0.10 / $0.50 per million input/output tokens) for both summary and chat, with `effort: "low"` — Haiku 5.5 thinks adaptively by default and these short tasks don't need deep reasoning.
-- Override per environment with `ANTHROPIC_MODEL` (e.g. `claude-haiku-4-5-20251001` to roll back). `effort` is only sent to Claude 5.x models, which accept it.
-
-GPT-4o (`@ai-sdk/openai`) is wired in the route handlers but the toggle is hidden in the UI — add `OPENAI_API_KEY` to `.env.local` and re-add the toggle in `SearchForm.tsx` if you want it back.
-
-## Getting Started
-
-### 1. Install
-
-```bash
-npm install
+```mermaid
+flowchart LR
+  U[Browser<br/>HomeApp] -- POST /api/summarize --> S[Summarize route]
+  S -- company-news / crypto news --> F[(Finnhub)]
+  S -- streamText + Output.object --> C[(Claude Haiku 5.5)]
+  S -- SSE: articles → partial objects → done --> U
+  U -- POST /api/chat<br/>messages + ticker + articles + summary --> CH[Chat route]
+  CH -- streamText --> C
+  CH -- UI message stream --> U
 ```
 
-### 2. Configure environment
+Full write-up — request flows, modules, prompts, security model, SEO/GEO, testing strategy and design decisions — in **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-Copy `.env.example` to `.env.local` and fill in `ANTHROPIC_API_KEY` and `NEWS_API_KEY`. Optional: `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_SITE_URL`, `ANTHROPIC_MODEL`. `.env.local` is gitignored.
+## Getting started
 
-### 3. Run
+Requirements: Node 22+, npm.
 
 ```bash
-npm run dev
+npm ci
+cp .env.example .env.local   # then fill in the keys below
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+### Environment variables
 
-### Scripts
+| Variable | Required | Purpose |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | yes | Claude API key |
+| `FINNHUB_API_KEY` | yes | News data — free key at [finnhub.io](https://finnhub.io) (free plan is for personal use) |
+| `ANTHROPIC_MODEL` | no | Override the model (default `claude-haiku-5-5`; e.g. `claude-haiku-4-5-20251001` to roll back) |
+| `NEXT_PUBLIC_GA_ID` | no | GA4 measurement ID (`G-…`). Unset = no banner, no analytics. Build-time variable: redeploy after changing it |
+| `NEXT_PUBLIC_SITE_URL` | no | Canonical URL once a custom domain exists (default `https://fintech-summarizer.vercel.app`) |
+| `OPENAI_API_KEY` / `OPENAI_MODEL` | no | Only if the hidden GPT provider is re-enabled |
+
+Deployment, Google Analytics setup and the custom-domain checklist: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
+## Scripts
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Start Next.js dev server (Turbopack) |
-| `npm run build` | Production build |
-| `npm run start` | Run the production build |
+| `npm run dev` | Dev server (Turbopack) |
+| `npm run build` / `npm start` | Production build / serve it |
 | `npm run lint` | ESLint |
-| `npm run typecheck` | TypeScript, no emit |
-| `npm test` | Unit + integration tests (Vitest, jsdom) |
-| `npm run test:coverage` | Same, with the 95% coverage gate |
-| `npm run test:e2e` | Playwright on desktop + mobile against `npm run build` output (API mocked; set `E2E_BASE_URL` to test a deployed URL) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Unit + integration tests (Vitest) |
+| `npm run test:coverage` | Same, enforcing ≥95% lines/statements/functions/branches |
+| `npm run test:e2e` | Playwright (desktop + mobile) against the production build, API mocked. `E2E_BASE_URL=https://… npm run test:e2e` runs it against a deployment |
 
-CI (`.github/workflows/ci.yml`) runs lint → typecheck → coverage → build → E2E on every push to `main` and every PR.
+CI (`.github/workflows/ci.yml`): lint → typecheck → coverage → build → E2E, on pushes to `main` and every PR. No secrets needed.
 
-## Project Structure
+## Project structure
 
 ```
 src/
 ├── app/
-│   ├── api/
-│   │   ├── summarize/route.ts   # custom SSE — articles, then streamed object deltas
-│   │   └── chat/
-│   │       ├── route.ts         # grounded chat with tool support scaffolded
-│   │       └── tools.ts         # empty ToolSet — drop tools in here
-│   ├── icon.svg                 # favicon
-│   ├── layout.tsx               # metadata, OG, viewport
+│   ├── api/summarize/route.ts   # news + streamed structured summary (SSE)
+│   ├── api/chat/route.ts        # grounded chat (AI SDK UI message stream)
+│   ├── api/chat/tools.ts        # tool registry (empty; add tools here)
+│   ├── layout.tsx               # metadata, Open Graph, viewport
 │   ├── page.tsx                 # server component: JSON-LD + <HomeApp/>
 │   ├── privacy/page.tsx         # privacy & disclaimer (EN/ES)
 │   ├── robots.ts · sitemap.ts · manifest.ts · opengraph-image.tsx
-│   └── globals.css
+│   └── globals.css              # theme + shadcn/AI Elements tokens
 ├── components/
-│   ├── ai-elements/             # CLI-installed Conversation/Message/PromptInput
-│   ├── ui/                      # CLI-installed shadcn primitives
-│   ├── HomeApp.tsx              # client app: search + SSE state, footer, consent, GA
-│   ├── Analytics.tsx · ConsentBanner.tsx · Footer.tsx · InfoSections.tsx
-│   ├── Chat.tsx                 # useChat + ai-elements wiring
-│   ├── LanguageToggle.tsx
-│   ├── NewsCard.tsx
-│   ├── NewsFeed.tsx
-│   ├── SearchForm.tsx           # ticker input + popular dropdown
-│   ├── SentimentBadge.tsx
-│   └── SummarySection.tsx
+│   ├── HomeApp.tsx              # client root: search, SSE state, layout
+│   ├── SearchForm.tsx           # ticker input + Popular picker
+│   ├── SummarySection.tsx       # AI summary card + chat column
+│   ├── Chat.tsx                 # useChat + AI Elements
+│   ├── NewsFeed.tsx · NewsCard.tsx · SentimentBadge.tsx
+│   ├── InfoSections.tsx         # How it works + FAQ (crawlable copy)
+│   ├── Footer.tsx · ConsentBanner.tsx · Analytics.tsx · LanguageToggle.tsx
+│   ├── ui/ · ai-elements/       # vendored by the shadcn / AI Elements CLIs
 └── lib/
-    ├── i18n.ts                  # LanguageProvider (persisted, sets <html lang>) + t()
-    ├── translations.ts          # EN/ES dictionary (server-safe)
-    ├── news.ts                  # NewsAPI query, URL sanitizing, normalization
+    ├── news.ts                  # Finnhub client, normalization, URL sanitizing
     ├── prompts.ts               # summary + chat prompts
-    ├── models.ts                # model selection (env override)
-    ├── rate-limit.ts            # per-IP limiter + origin check
-    ├── sse.ts                   # SSE encode/parse
-    ├── consent.ts · analytics.ts · site.ts · structured-data.ts
-    ├── recent-tickers.ts        # useRecentTickers — localStorage, last 5
-    ├── tickers.ts               # POPULAR_TICKERS list for the dropdown
+    ├── models.ts                # model choice + effort
+    ├── rate-limit.ts            # per-IP limiter, origin check
+    ├── sse.ts                   # SSE encode / incremental parse
     ├── types.ts                 # shared types + Zod schemas
-    └── utils.ts                 # cn() helper
+    ├── i18n.ts · translations.ts
+    ├── consent.ts · analytics.ts
+    ├── site.ts · structured-data.ts · tickers.ts · recent-tickers.ts · utils.ts
+tests/
+├── unit/                        # Vitest: lib, routes, components, full front-end flow
+└── e2e/                         # Playwright: user journeys, a11y, SEO files, headers
+docs/
+├── ARCHITECTURE.md              # how it works and why
+├── DEPLOYMENT.md                # Vercel, env vars, GA, domain, operations
+└── AUDIT.md                     # technical audit (Spanish) and open items
 ```
 
-## How the streaming works
+## Adding a chat tool
 
-### `/api/summarize`
-
-Custom Server-Sent Events with three message types:
-
-1. `{ type: "articles", data: NewsArticle[] }` — fired first so the news feed populates immediately while the model is still thinking.
-2. `{ type: "object", data: PartialSummary }` — every partial object delta from `streamText({ output: Output.object({ schema }) })`. The UI re-renders as fields fill in.
-3. `{ type: "done" }` — terminator.
-4. `{ type: "error", data: string }` — on validation, fetch, or model errors.
-
-### `/api/chat`
-
-Uses the Vercel AI SDK's UI message stream protocol via `result.toUIMessageStreamResponse()`. The client uses `useChat()` from `@ai-sdk/react` and passes the current `provider`, `language`, `ticker`, `articles`, and `summary` to `sendMessage` so the server can inject them into the system prompt for every turn.
-
-## Adding tools to the chat
-
-Drop them into `src/app/api/chat/tools.ts`:
+Register it in `src/app/api/chat/tools.ts`; the route picks up everything in `chatTools`:
 
 ```ts
 import { tool, type ToolSet } from "ai";
@@ -146,18 +135,16 @@ export const chatTools = {
   analyzeTicker: tool({
     description: "Pull news + summary for a different ticker.",
     inputSchema: z.object({ ticker: z.string() }),
-    execute: async ({ ticker }) => {
-      // ...
-    },
+    execute: async ({ ticker }) => { /* ... */ },
   }),
 } satisfies ToolSet;
 ```
 
-The route handler auto-registers everything in `chatTools` — no other wiring needed on the server. To render tool output in the chat UI, add a case for `tool-<name>` in `src/components/Chat.tsx` next to the existing `text` case.
+Render its output in `src/components/Chat.tsx` by handling the `tool-<name>` part type.
 
 ## Notes
 
-- `AGENTS.md` flags that this is Next 16, not Next 15 — APIs and conventions can differ from older training data. The route handler async-param pattern is honored throughout.
-- npm is the package manager (`package-lock.json`); the old `yarn.lock` was removed so Vercel and CI install the same tree.
-- Rate limiting is in-memory per serverless instance. For a hard global limit, back `src/lib/rate-limit.ts` with Upstash Redis / Vercel KV.
-- The AI Elements + shadcn primitives are CLI-generated and excluded from ESLint (`eslint.config.mjs`) so their internal patterns don't gate the suite.
+- This is Next.js 16: read `node_modules/next/dist/docs/` before changing framework code (see `AGENTS.md`).
+- npm is the package manager (`package-lock.json` only).
+- Rate limiting is in-memory per serverless instance; for a global limit back `src/lib/rate-limit.ts` with Upstash Redis / Vercel KV.
+- `src/components/ui` and `src/components/ai-elements` are CLI-generated and excluded from lint and coverage.
