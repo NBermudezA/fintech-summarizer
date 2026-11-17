@@ -20,6 +20,7 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
+import { trackEvent } from "@/lib/analytics";
 import { useLanguage } from "@/lib/i18n";
 import type { NewsArticle, PartialSummary, Provider } from "@/lib/types";
 
@@ -49,7 +50,7 @@ export default function Chat({
     : t("chatPlaceholderUngrounded");
 
   return (
-    <div className="flex h-[34rem] flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60">
+    <div className="flex h-[28rem] flex-col lg:h-[36rem] overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60">
       <header className="flex shrink-0 items-center justify-between border-b border-zinc-800/80 px-5 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
           <MessageSquare
@@ -142,6 +143,7 @@ export default function Chat({
               },
             );
             setInput("");
+            trackEvent("chat_message", { grounded, language });
           }}
           className="flex items-end gap-2 rounded-xl bg-zinc-900/80 p-2 ring-1 ring-inset ring-zinc-800"
         >
@@ -150,6 +152,7 @@ export default function Chat({
             onChange={(e) => setInput(e.target.value)}
             placeholder={placeholder}
             rows={1}
+            maxLength={2000}
             disabled={isGenerating}
             className="flex-1 bg-transparent"
             aria-label={t("chatInputLabel")}

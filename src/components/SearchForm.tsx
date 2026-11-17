@@ -140,7 +140,7 @@ export default function SearchForm({
         <button
           type="submit"
           disabled={isLoading || ticker.trim().length === 0}
-          className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+          className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition-colors motion-reduce:transition-none hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
         >
           {isLoading ? t("analyzing") : t("analyze")}
         </button>

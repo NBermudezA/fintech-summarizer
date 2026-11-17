@@ -56,7 +56,7 @@ export default function SummarySection({
       aria-labelledby="summary-heading"
       className="grid w-full gap-4 lg:grid-cols-[1.6fr_1fr]"
     >
-      <article className="flex h-[34rem] flex-col gap-5 rounded-2xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 to-zinc-950/80 p-6">
+      <article className="flex min-h-[20rem] flex-col gap-5 lg:h-[36rem] rounded-2xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 to-zinc-950/80 p-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h2
             id="summary-heading"
@@ -73,7 +73,11 @@ export default function SummarySection({
           <SentimentBadge sentiment={sentiment} />
         </header>
 
-        <div className="flex-1 overflow-y-auto pr-1 [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
+        <div
+          className="flex-1 pr-1 [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin] lg:overflow-y-auto"
+          tabIndex={0}
+          aria-label={t("summaryHeading")}
+        >
 
         {error ? (
           <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-5 py-4 text-sm text-rose-300">
@@ -123,6 +127,12 @@ export default function SummarySection({
                   ))}
                 </ul>
               </div>
+            ) : null}
+
+            {!isStreaming && headline ? (
+              <p className="border-t border-zinc-800/80 pt-3 text-xs text-zinc-500">
+                {t("disclaimerShort")}
+              </p>
             ) : null}
           </div>
         )}

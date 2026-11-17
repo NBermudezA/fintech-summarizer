@@ -18,6 +18,7 @@ function formatDate(iso: string, locale: string): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZoneName: "short",
   });
 }
 
@@ -30,7 +31,7 @@ export default function NewsCard({ article }: NewsCardProps) {
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex h-full flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 backdrop-blur transition-all hover:border-emerald-500/40 hover:bg-zinc-900/70"
+      className="group flex h-full flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 backdrop-blur transition-all hover:border-emerald-500/40 hover:bg-zinc-900/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
     >
       <div className="flex items-center justify-between gap-3 text-xs">
         <span className="truncate font-medium uppercase tracking-wide text-emerald-400/90">
@@ -46,13 +47,14 @@ export default function NewsCard({ article }: NewsCardProps) {
       </h3>
 
       {article.description ? (
-        <p className="max-h-28 overflow-y-auto pr-1 text-sm leading-relaxed text-zinc-400 [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
+        <p className="line-clamp-4 text-sm leading-relaxed text-zinc-400">
           {article.description}
         </p>
       ) : null}
 
       <div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-zinc-500 transition-colors group-hover:text-emerald-400">
         {t("readArticle")}
+        <span className="sr-only"> ({article.source.name})</span>
         <ExternalLink className="size-3.5" aria-hidden="true" />
       </div>
     </a>

@@ -1,0 +1,18 @@
+# Fintech Summarizer
+
+> Free web app that turns any stock or crypto ticker (AAPL, NVDA, TSLA, BTC, ETH…) into an AI market briefing: the 5 latest news articles plus a streaming, structured summary (headline, market overview, three key insights, sentiment) written by Anthropic's Claude, and a chat for follow-up questions grounded in those articles. English and Spanish. Educational project — not financial advice.
+
+## Pages
+
+- [Home / app](https://fintech-summarizer.vercel.app/): search a ticker, read news cards, AI summary and chat.
+- [Privacy & disclaimer](https://fintech-summarizer.vercel.app/privacy): data handling, cookies, AI and news-source disclaimers.
+
+## How it works
+
+- News: NewsAPI.org, latest English-language articles matching the ticker and company name.
+- AI: Claude (Haiku family) via the Vercel AI SDK; structured output validated with Zod and streamed over Server-Sent Events.
+- Stack: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, deployed on Vercel.
+
+## Source
+
+- [GitHub repository](https://github.com/NBermudezA/fintech-summarizer)
