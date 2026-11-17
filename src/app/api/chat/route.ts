@@ -6,7 +6,7 @@ import {
 } from "ai";
 
 import { chatTools } from "./tools";
-import { isProviderConfigured, pickModel } from "@/lib/models";
+import { isProviderConfigured, pickModel, providerOptions } from "@/lib/models";
 import { buildChatSystemPrompt } from "@/lib/prompts";
 import {
   clientKey,
@@ -68,7 +68,10 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const result = streamText({
       model: pickModel(provider),
-      maxOutputTokens: 400,
+      // Thinking counts toward this cap on Claude 5.x; the prompt keeps
+      // replies short.
+      maxOutputTokens: 1500,
+      providerOptions: providerOptions(provider),
       system: buildChatSystemPrompt(ticker, articles, summary, language),
       messages: await convertToModelMessages(messages as unknown as UIMessage[]),
       tools: chatTools,

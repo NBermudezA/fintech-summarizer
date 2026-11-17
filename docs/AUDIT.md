@@ -37,7 +37,7 @@ Sin problemas: no hay secretos en el código ni en el historial de git (solo el 
 - **Relevancia**: "usa SOLO estos artículos" (aunque fueran de PyPI) → "ignora los resultados que no traten del ticker; si hay menos de 2 relevantes, dilo".
 - **Seguridad**: el texto de terceros se mezclaba con las instrucciones → va delimitado y declarado como dato no confiable.
 - **Alcance**: rechaza pedidos ajenos a finanzas (antes ya lo hacía, ahora queda explícito).
-- **Modelo**: `claude-haiku-4-5` se mantiene por defecto; con `ANTHROPIC_MODEL=claude-haiku-5-5` (la generación actual, ~10× más barata) se puede probar en un preview antes de pasarlo a producción.
+- **Modelo**: ahora `claude-haiku-5-5` por defecto ($0,10 / $0,50 por millón de tokens frente a $1 / $5 de Haiku 4.5), con `effort: "low"`. Haiku 5.5 "piensa" por defecto y estas tareas cortas no lo necesitan. Para volver atrás: `ANTHROPIC_MODEL=claude-haiku-4-5-20251001`.
 
 ## Legal: de dónde vienen los datos
 
@@ -61,7 +61,7 @@ Sin problemas: no hay secretos en el código ni en el historial de git (solo el 
 5. **Google Search Console + Bing Webmaster**: enviar `sitemap.xml`. Bing alimenta a ChatGPT Search y Copilot, así que importa para GEO.
 6. **Rate limit global**: hoy vive en la memoria de cada instancia serverless. Para un tope real, Upstash Redis (tiene plan gratuito) detrás de la misma interfaz. Pon también un límite de gasto mensual en la consola de Anthropic.
 7. **CSP con nonces** (en `next.config.ts` está anotado por qué quedó fuera).
-8. **Probar `claude-haiku-5-5`** en un preview: más barato y más reciente.
+8. ~~Probar `claude-haiku-5-5`~~ → ya es el modelo por defecto; revisar latencia y calidad en el preview.
 9. **Comparar el sentimiento**: el mismo NVDA dio NEUTRAL en escritorio y BEARISH en móvil con segundos de diferencia. Considera mostrar en qué artículos se apoya cada punto clave (citas `[1]`, `[2]`) para dar confianza.
 
 ## Propuestas visuales (no implementadas)

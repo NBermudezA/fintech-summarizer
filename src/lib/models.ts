@@ -1,12 +1,14 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
-import type { LanguageModel } from "ai";
+import type { LanguageModel, streamText } from "ai";
 
 import type { Provider } from "@/lib/types";
 
-// Override per environment (e.g. ANTHROPIC_MODEL=claude-haiku-5-5) to try a
-// new model on a Vercel preview before promoting it.
-export const DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
+type ProviderOptions = Parameters<typeof streamText>[0]["providerOptions"];
+
+// Claude Haiku 5.5: the current, cheapest Haiku ($0.10 / $0.50 per MTok vs
+// $1 / $5 for Haiku 4.5). Override per environment with ANTHROPIC_MODEL.
+export const DEFAULT_ANTHROPIC_MODEL = "claude-haiku-5-5";
 export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 
 export function modelId(provider: Provider): string {
@@ -19,6 +21,20 @@ export function pickModel(provider: Provider): LanguageModel {
   return provider === "anthropic"
     ? anthropic(modelId(provider))
     : openai(modelId(provider));
+}
+
+/** Claude 5.x models accept `effort`; Haiku 4.5 and older reject it (400). */
+export function supportsEffort(id: string): boolean {
+  return /^claude-(haiku|sonnet|opus|fable|mythos)-5(\b|-)/.test(id);
+}
+
+/**
+ * Haiku 5.5 thinks adaptively by default. Short summaries and chat replies
+ * don't need deep reasoning, so `low` effort keeps latency and cost down.
+ */
+export function providerOptions(provider: Provider): ProviderOptions {
+  if (provider !== "anthropic" || !supportsEffort(modelId(provider))) return undefined;
+  return { anthropic: { effort: "low" } };
 }
 
 export function isProviderConfigured(provider: Provider): boolean {

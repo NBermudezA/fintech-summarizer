@@ -1,6 +1,6 @@
 import { Output, streamText } from "ai";
 
-import { isProviderConfigured, pickModel } from "@/lib/models";
+import { isProviderConfigured, pickModel, providerOptions } from "@/lib/models";
 import { fetchArticles, NewsProviderError } from "@/lib/news";
 import { buildSummaryPrompt } from "@/lib/prompts";
 import {
@@ -92,7 +92,9 @@ export async function POST(req: Request): Promise<Response> {
       try {
         const result = streamText({
           model: pickModel(provider),
-          maxOutputTokens: 800,
+          // Thinking counts toward this cap on Claude 5.x, so leave headroom.
+          maxOutputTokens: 2000,
+          providerOptions: providerOptions(provider),
           output: Output.object({ schema: summarySchema }),
           prompt: buildSummaryPrompt(ticker, articles, language),
           onError({ error }) {

@@ -36,8 +36,8 @@ Project 1 of an AI Engineering roadmap, built on Next.js 16 + Vercel AI SDK v6.
 
 Set in `src/lib/models.ts`; prompts live in `src/lib/prompts.ts`.
 
-- Default: **`claude-haiku-4-5-20251001`** for both summary and chat.
-- Override per environment with `ANTHROPIC_MODEL` (e.g. `claude-haiku-5-5`, the current Haiku, roughly 10× cheaper) — try it on a Vercel preview before promoting.
+- Default: **`claude-haiku-5-5`** (current Haiku, $0.10 / $0.50 per million input/output tokens) for both summary and chat, with `effort: "low"` — Haiku 5.5 thinks adaptively by default and these short tasks don't need deep reasoning.
+- Override per environment with `ANTHROPIC_MODEL` (e.g. `claude-haiku-4-5-20251001` to roll back). `effort` is only sent to Claude 5.x models, which accept it.
 
 GPT-4o (`@ai-sdk/openai`) is wired in the route handlers but the toggle is hidden in the UI — add `OPENAI_API_KEY` to `.env.local` and re-add the toggle in `SearchForm.tsx` if you want it back.
 

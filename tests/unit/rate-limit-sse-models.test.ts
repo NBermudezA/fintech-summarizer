@@ -7,6 +7,8 @@ import {
   isProviderConfigured,
   modelId,
   pickModel,
+  providerOptions,
+  supportsEffort,
 } from "@/lib/models";
 import {
   chatLimiter,
@@ -113,6 +115,22 @@ describe("models", () => {
     vi.stubEnv("ANTHROPIC_MODEL", "");
     expect(pickModel("anthropic")).toMatchObject({ modelId: DEFAULT_ANTHROPIC_MODEL });
     expect(pickModel("openai")).toMatchObject({ provider: expect.stringContaining("openai") });
+  });
+
+  it("defaults to Claude Haiku 5.5 with low effort", () => {
+    vi.stubEnv("ANTHROPIC_MODEL", "");
+    expect(DEFAULT_ANTHROPIC_MODEL).toBe("claude-haiku-5-5");
+    expect(providerOptions("anthropic")).toEqual({ anthropic: { effort: "low" } });
+    expect(providerOptions("openai")).toBeUndefined();
+  });
+
+  it("omits effort for models that reject it", () => {
+    vi.stubEnv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001");
+    expect(providerOptions("anthropic")).toBeUndefined();
+    expect(supportsEffort("claude-sonnet-5")).toBe(true);
+    expect(supportsEffort("claude-opus-5-5")).toBe(true);
+    expect(supportsEffort("claude-haiku-4-5")).toBe(false);
+    expect(supportsEffort("claude-3-haiku-20240307")).toBe(false);
   });
 
   it("reports whether a provider key is present", () => {

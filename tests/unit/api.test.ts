@@ -17,6 +17,7 @@ vi.mock("@/lib/models", () => ({
     return mocks.model;
   },
   isProviderConfigured: () => mocks.configured,
+  providerOptions: () => ({ anthropic: { effort: "low" } }),
 }));
 
 vi.mock("@/lib/news", async (orig) => {
@@ -209,6 +210,8 @@ describe("POST /api/chat", () => {
     const call = model.doStreamCalls[0];
     const system = call.prompt.find((m) => m.role === "system");
     expect(system?.content).toContain("Active ticker: AAPL");
+    expect(call.providerOptions).toEqual({ anthropic: { effort: "low" } });
+    expect(call.maxOutputTokens).toBe(1500);
   });
 
   it("validates origin, JSON, schema bounds and message length", async () => {
