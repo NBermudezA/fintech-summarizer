@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_ANTHROPIC_MODEL,
   DEFAULT_OPENAI_MODEL,
+  anthropicApiKey,
   isProviderConfigured,
   modelId,
   pickModel,
@@ -133,7 +134,20 @@ describe("models", () => {
     expect(supportsEffort("claude-3-haiku-20240307")).toBe(false);
   });
 
+  it("prefers the production key and falls back to ANTHROPIC_API_KEY", () => {
+    vi.stubEnv("ANTHROPIC_PROD_KEY", "prod-key");
+    vi.stubEnv("ANTHROPIC_API_KEY", "dev-key");
+    expect(anthropicApiKey()).toBe("prod-key");
+    expect(isProviderConfigured("anthropic")).toBe(true);
+    vi.stubEnv("ANTHROPIC_PROD_KEY", "");
+    expect(anthropicApiKey()).toBe("dev-key");
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    expect(anthropicApiKey()).toBeUndefined();
+    expect(isProviderConfigured("anthropic")).toBe(false);
+  });
+
   it("reports whether a provider key is present", () => {
+    vi.stubEnv("ANTHROPIC_PROD_KEY", "");
     vi.stubEnv("ANTHROPIC_API_KEY", "");
     vi.stubEnv("OPENAI_API_KEY", "x");
     expect(isProviderConfigured("anthropic")).toBe(false);
