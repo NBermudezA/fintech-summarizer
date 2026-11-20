@@ -4,8 +4,8 @@
 
 ## Pages
 
-- [Home / app](https://fintech-summarizer.vercel.app/): search a ticker, read news cards, AI summary and chat.
-- [Privacy & disclaimer](https://fintech-summarizer.vercel.app/privacy): data handling, cookies, AI and news-source disclaimers.
+- [Home / app](https://fintech.nicobermudez.com/): search a ticker, read news cards, AI summary and chat.
+- [Privacy & disclaimer](https://fintech.nicobermudez.com/privacy): data handling, cookies, AI and news-source disclaimers.
 
 ## How it works
 

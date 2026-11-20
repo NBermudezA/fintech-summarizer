@@ -1,7 +1,8 @@
-// Single source of truth for public site identity. Override the URL with
-// NEXT_PUBLIC_SITE_URL once a custom domain is attached.
+// Single source of truth for public site identity. Canonical URLs, Open
+// Graph, the sitemap, robots and JSON-LD all derive from SITE_URL.
+// NEXT_PUBLIC_SITE_URL overrides it (e.g. for a staging domain).
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://fintech-summarizer.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL || "https://fintech.nicobermudez.com"
 ).replace(/\/+$/, "");
 
 export const SITE_NAME = "Fintech Summarizer";

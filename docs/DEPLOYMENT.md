@@ -1,6 +1,6 @@
 # Deployment and operations
 
-The app runs on Vercel. Every push to a branch creates a preview deployment; `main` deploys to production at https://fintech-summarizer.vercel.app.
+The app runs on Vercel at **https://fintech.nicobermudez.com** (domain registered at Cloudflare, DNS on Cloudflare). Every push to a branch creates a preview deployment; `main` deploys to production. The old `fintech-summarizer.vercel.app` URL redirects to the custom domain.
 
 ## 1. Environment variables (Vercel → Project → Settings → Environment Variables)
 
@@ -12,7 +12,7 @@ Set them for **Production** and **Preview**.
 | `FINNHUB_API_KEY` | yes | Free at finnhub.io → Dashboard. Free plan: 60 calls/min, personal use |
 | `ANTHROPIC_MODEL` | no | Default `claude-haiku-5-5`. Set `claude-haiku-4-5-20251001` to roll back without a code change |
 | `NEXT_PUBLIC_GA_ID` | no | GA4 measurement ID. **Build-time**: redeploy after setting it |
-| `NEXT_PUBLIC_SITE_URL` | no | Only after attaching a custom domain. **Build-time** |
+| `NEXT_PUBLIC_SITE_URL` | no | Defaults to `https://fintech.nicobermudez.com`; set only to override. **Build-time** |
 | `NEWS_API_KEY` | — | No longer used; delete it from Vercel |
 
 Server-only variables (`ANTHROPIC_*`, `FINNHUB_*`) apply to the next request after a redeploy. `NEXT_PUBLIC_*` variables are inlined at build time, so they always need a redeploy.
@@ -37,13 +37,26 @@ Server-only variables (`ANTHROPIC_*`, `FINNHUB_*`) apply to the next request aft
 
 Events sent: `page_view` (automatic), `analyze_ticker`, `analyze_error`, `chat_message`. Nothing is sent until the visitor accepts; "Cookie settings" in the footer resets the choice.
 
-## 4. Custom domain (later)
+## 4. Custom domain (Cloudflare DNS → Vercel)
 
-1. Buy the domain and add it in Vercel → Settings → Domains (follow the DNS records it shows).
-2. Set `NEXT_PUBLIC_SITE_URL=https://your-domain` and redeploy. Canonical URLs, Open Graph, the sitemap, robots and JSON-LD all read it from `src/lib/site.ts`.
-3. Update the URLs in `public/llms.txt` and the README.
-4. In Vercel, redirect `fintech-summarizer.vercel.app` to the new domain.
-5. Google Search Console and Bing Webmaster Tools: verify the domain, submit `https://your-domain/sitemap.xml`. Bing also feeds ChatGPT search and Copilot.
+`nicobermudez.com` is registered at Cloudflare. The app lives on the `fintech` subdomain; the apex is reserved for a personal portfolio.
+
+1. **Vercel** → project → Settings → **Domains** → Add `fintech.nicobermudez.com`. Vercel shows the DNS record it expects (a CNAME); copy its target exactly.
+2. **Cloudflare** → `nicobermudez.com` → **DNS → Records → Add record**:
+   - Type `CNAME`, Name `fintech`, Target: the value Vercel showed.
+   - **Proxy status: DNS only (grey cloud).** With Cloudflare's proxy (orange cloud) in front, Vercel cannot issue and renew the TLS certificate reliably and two CDNs fight over caching.
+3. Back in Vercel, wait until the domain shows **Valid Configuration** (usually minutes). Vercel issues the HTTPS certificate automatically.
+4. In Vercel's domain list, edit `fintech-summarizer.vercel.app` and set it to **redirect** to `fintech.nicobermudez.com` (308), so only one URL is indexed.
+5. Redeploy production (SITE_URL is inlined at build time) and check:
+   ```bash
+   curl -sI https://fintech.nicobermudez.com | head -1          # 200
+   curl -s https://fintech.nicobermudez.com/robots.txt | tail -2   # Sitemap: https://fintech.nicobermudez.com/sitemap.xml
+   E2E_BASE_URL=https://fintech.nicobermudez.com npm run test:e2e
+   ```
+6. **Google Search Console** → Add property → *Domain* `nicobermudez.com` → it gives a TXT record: add it in Cloudflare DNS (Cloudflare can also add it automatically) → Verify → Sitemaps → submit `https://fintech.nicobermudez.com/sitemap.xml`. Do the same in **Bing Webmaster Tools** (it can import from Search Console); Bing also feeds ChatGPT search and Copilot.
+7. If a GA4 property exists, update its web stream URL to the new domain.
+
+To move the app to another domain later, change `SITE_URL` in `src/lib/site.ts` (or set `NEXT_PUBLIC_SITE_URL`), update `public/llms.txt` and the README, and repeat the steps above.
 
 ## 5. Operations
 

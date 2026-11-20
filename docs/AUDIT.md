@@ -64,7 +64,8 @@ Sin problemas: no hay secretos en el código ni en el historial de git (solo el 
 3. **Revisar Haiku 5.5 en el preview** (latencia y calidad). Para volver atrás: `ANTHROPIC_MODEL=claude-haiku-4-5-20251001`.
 4. **Límite de gasto mensual** en la consola de Anthropic (5 minutos, el único tope duro de costo).
 5. **Google Analytics**: crear la propiedad y poner `NEXT_PUBLIC_GA_ID` en Vercel ([DEPLOYMENT.md](DEPLOYMENT.md#3-google-analytics-4)).
-6. **Más adelante**: dominio propio + Search Console/Bing; límite de uso global con Upstash; caché de noticias por ticker (cuida el límite de 60/min de Finnhub); CSP con nonces; citas `[1]`, `[2]` por punto clave.
+6. **Dominio**: `nicobermudez.com` comprado en Cloudflare; la app va en `fintech.nicobermudez.com` (configuración en [DEPLOYMENT.md](DEPLOYMENT.md#4-custom-domain-cloudflare-dns--vercel)). Después: Search Console y Bing.
+7. **Más adelante**: límite de uso global con Upstash; caché de noticias por ticker (cuida el límite de 60/min de Finnhub); CSP con nonces; citas `[1]`, `[2]` por punto clave.
 
 ## Auditoría visual (2026-11-17)
 

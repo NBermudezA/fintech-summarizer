@@ -2,7 +2,7 @@
 
 AI market briefings for any stock or crypto ticker. Type `NVDA` or `BTC` and get a streaming, structured summary written by Claude — headline, market overview, three key insights and sentiment — plus the five source articles and a chat for follow-up questions grounded in them. English and Spanish.
 
-**Live demo:** [fintech-summarizer.vercel.app](https://fintech-summarizer.vercel.app/)
+**Live demo:** [fintech.nicobermudez.com](https://fintech.nicobermudez.com/)
 
 > Educational project. Nothing in the app is investment advice.
 
@@ -63,7 +63,7 @@ npm run dev                  # http://localhost:3000
 | `FINNHUB_API_KEY` | yes | News data — free key at [finnhub.io](https://finnhub.io) (free plan is for personal use) |
 | `ANTHROPIC_MODEL` | no | Override the model (default `claude-haiku-5-5`; e.g. `claude-haiku-4-5-20251001` to roll back) |
 | `NEXT_PUBLIC_GA_ID` | no | GA4 measurement ID (`G-…`). Unset = no banner, no analytics. Build-time variable: redeploy after changing it |
-| `NEXT_PUBLIC_SITE_URL` | no | Canonical URL once a custom domain exists (default `https://fintech-summarizer.vercel.app`) |
+| `NEXT_PUBLIC_SITE_URL` | no | Override the canonical URL (default `https://fintech.nicobermudez.com`). Build-time variable |
 | `OPENAI_API_KEY` / `OPENAI_MODEL` | no | Only if the hidden GPT provider is re-enabled |
 
 Deployment, Google Analytics setup and the custom-domain checklist: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
