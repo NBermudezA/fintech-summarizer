@@ -19,4 +19,6 @@ export const POPULAR_TICKERS: PopularTicker[] = [
   { symbol: "BTC", name: "Bitcoin", category: "crypto" },
   { symbol: "ETH", name: "Ethereum", category: "crypto" },
   { symbol: "SOL", name: "Solana", category: "crypto" },
+  { symbol: "XRP", name: "XRP", category: "crypto" },
+  { symbol: "DOGE", name: "Dogecoin", category: "crypto" },
 ];
