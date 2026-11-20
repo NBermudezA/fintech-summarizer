@@ -1,7 +1,5 @@
 "use client";
 
-import { Newspaper } from "lucide-react";
-
 import NewsCard from "@/components/NewsCard";
 import { useLanguage } from "@/lib/i18n";
 import type { NewsArticle } from "@/lib/types";
@@ -13,19 +11,18 @@ interface NewsFeedProps {
   error: string | null;
 }
 
+const BAR = "animate-pulse rounded-[2px] bg-highlight motion-reduce:animate-none";
+
 function SkeletonCard() {
   return (
-    <div className="flex h-full flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5">
+    <div className="flex h-full flex-col gap-3 border-t border-rule pt-4" aria-hidden="true">
+      <div className={`aspect-[21/9] w-full sm:aspect-[16/9] ${BAR}`} />
       <div className="flex items-center justify-between gap-3">
-        <div className="h-3 w-20 animate-pulse rounded bg-zinc-800" />
-        <div className="h-3 w-24 animate-pulse rounded bg-zinc-800" />
+        <div className={`h-3 w-20 ${BAR}`} />
+        <div className={`h-3 w-24 ${BAR}`} />
       </div>
-      <div className="h-4 w-full animate-pulse rounded bg-zinc-800" />
-      <div className="h-4 w-3/4 animate-pulse rounded bg-zinc-800" />
-      <div className="space-y-2">
-        <div className="h-3 w-full animate-pulse rounded bg-zinc-800/70" />
-        <div className="h-3 w-5/6 animate-pulse rounded bg-zinc-800/70" />
-      </div>
+      <div className={`h-5 w-full ${BAR}`} />
+      <div className={`h-5 w-3/4 ${BAR}`} />
     </div>
   );
 }
@@ -40,22 +37,18 @@ export default function NewsFeed({
   const hasImages = articles.some((a) => Boolean(a.image));
 
   return (
-    <section aria-labelledby="news-heading" className="w-full">
-      <div className="mb-4 flex items-baseline justify-between gap-4">
-        <h2
-          id="news-heading"
-          className="flex items-center gap-2 text-lg font-semibold text-zinc-100"
-        >
-          <Newspaper className="size-5 text-emerald-400" aria-hidden="true" />
+    <section aria-labelledby="news-heading" className="w-full border-t-2 border-ink pt-4">
+      <div className="mb-6 flex items-baseline justify-between gap-4">
+        <h2 id="news-heading" className="font-serif text-2xl font-medium text-ink sm:text-3xl">
           {t("newsHeading")}
           {ticker ? (
-            <span className="text-zinc-500">
-              · <span className="font-mono text-emerald-300">{ticker}</span>
+            <span className="ml-3 font-mono text-sm font-medium tracking-wide text-subtle">
+              {ticker}
             </span>
           ) : null}
         </h2>
         {articles.length > 0 ? (
-          <span className="text-xs text-zinc-500">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-subtle">
             {articles.length === 1
               ? t("articleCountSingular")
               : t("articleCountPlural", { count: articles.length })}
@@ -64,23 +57,21 @@ export default function NewsFeed({
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-5 py-4 text-sm text-rose-300">
+        <div role="alert" className="border-l-4 border-down bg-highlight px-5 py-4 text-sm text-ink">
           {error}
         </div>
       ) : isLoading ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
       ) : articles.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 px-5 py-10 text-center text-sm text-zinc-500">
-          {ticker
-            ? t("noArticles", { ticker })
-            : t("enterTicker")}
-        </div>
+        <p className="border-y border-rule py-10 text-center font-serif text-lg italic text-subtle">
+          {ticker ? t("noArticles", { ticker }) : t("enterTicker")}
+        </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
           {articles.map((a, i) => (
             <NewsCard
               key={a.url}

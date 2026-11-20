@@ -51,6 +51,23 @@ export const TRANSLATIONS = {
     readArticle: "Read article",
     requestFailed: "Request failed",
 
+    errorRateLimited: "Too many requests. Please wait a moment and try again.",
+    errorForbidden: "This request isn't allowed from here.",
+    errorInvalidRequest: "That ticker isn't valid. Use letters, numbers, dots or dashes (max 10).",
+    errorProviderUnavailable: "The AI service is temporarily unavailable. Please try again later.",
+    errorNewsUnavailable: "The news service is temporarily unavailable. Please try again later.",
+    errorNewsRateLimited: "The news service is busy. Please try again in a minute.",
+    errorNoArticles: "No recent articles found for {ticker}.",
+    errorSummaryFailed: "The AI summary could not be generated. Please try again.",
+    errorMessageTooLong: "Messages are limited to 2,000 characters.",
+    errorChatFailed: "The assistant could not respond. Please try again.",
+    networkError: "Network error. Check your connection and try again.",
+    scrollToLatest: "Scroll to latest message",
+    languageNameEn: "English",
+    languageNameEs: "Spanish",
+    summaryInOtherLanguage: "This summary was written in {lang}.",
+    regenerateSummary: "Regenerate in {lang}",
+
     disclaimerShort:
       "AI-generated from public news. Not financial advice.",
     footerDisclaimer:
@@ -138,6 +155,23 @@ export const TRANSLATIONS = {
 
     readArticle: "Leer artículo",
     requestFailed: "La solicitud falló",
+
+    errorRateLimited: "Demasiadas solicitudes. Espera un momento y vuelve a intentarlo.",
+    errorForbidden: "Esta solicitud no está permitida desde aquí.",
+    errorInvalidRequest: "Ese ticker no es válido. Usa letras, números, puntos o guiones (máx. 10).",
+    errorProviderUnavailable: "El servicio de IA no está disponible por ahora. Inténtalo más tarde.",
+    errorNewsUnavailable: "El servicio de noticias no está disponible por ahora. Inténtalo más tarde.",
+    errorNewsRateLimited: "El servicio de noticias está saturado. Vuelve a intentarlo en un minuto.",
+    errorNoArticles: "No se encontraron artículos recientes para {ticker}.",
+    errorSummaryFailed: "No se pudo generar el resumen con IA. Vuelve a intentarlo.",
+    errorMessageTooLong: "Los mensajes tienen un máximo de 2.000 caracteres.",
+    errorChatFailed: "El asistente no pudo responder. Vuelve a intentarlo.",
+    networkError: "Error de red. Revisa tu conexión y vuelve a intentarlo.",
+    scrollToLatest: "Ir al último mensaje",
+    languageNameEn: "inglés",
+    languageNameEs: "español",
+    summaryInOtherLanguage: "Este resumen está en {lang}.",
+    regenerateSummary: "Generarlo en {lang}",
 
     disclaimerShort:
       "Generado por IA a partir de noticias públicas. No es asesoría financiera.",

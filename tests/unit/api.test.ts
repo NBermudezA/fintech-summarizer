@@ -138,12 +138,18 @@ describe("POST /api/summarize", () => {
     mocks.articles = new NewsProviderError("News provider is unavailable", 502);
     const res = await summarize(post(valid));
     expect(res.status).toBe(502);
-    expect(await res.json()).toEqual({ error: "News provider is unavailable" });
+    expect(await res.json()).toEqual({
+      error: "News provider is unavailable",
+      code: "news_unavailable",
+    });
 
     mocks.articles = new Error("boom");
     const res2 = await summarize(post(valid));
     expect(res2.status).toBe(502);
-    expect(await res2.json()).toEqual({ error: "Failed to fetch news" });
+    expect(await res2.json()).toEqual({ error: "Failed to fetch news", code: "news_unavailable" });
+
+    mocks.articles = new NewsProviderError("rate", 502, "news_rate_limited");
+    expect(await (await summarize(post(valid))).json()).toMatchObject({ code: "news_rate_limited" });
   });
 
   it("reports an empty news result", async () => {
@@ -151,7 +157,7 @@ describe("POST /api/summarize", () => {
     const chunks = await readSse(await summarize(post(valid)));
     expect(chunks).toEqual([
       { type: "articles", data: [] },
-      { type: "error", data: 'No recent articles found for "AAPL".' },
+      { type: "error", code: "no_articles", data: 'No recent articles found for "AAPL".' },
       { type: "done" },
     ]);
   });
@@ -166,6 +172,7 @@ describe("POST /api/summarize", () => {
     const err = chunks.find((c) => c.type === "error");
     expect(err).toEqual({
       type: "error",
+      code: "summary_failed",
       data: "The AI summary could not be generated. Please try again.",
     });
     expect(chunks.at(-1)).toEqual({ type: "done" });
@@ -257,7 +264,7 @@ describe("POST /api/chat", () => {
     mocks.model = new Error("internal provider misconfiguration");
     const res = await chat(post(valid));
     expect(res.status).toBe(500);
-    expect(await res.json()).toEqual({ error: "Failed to process chat request" });
+    expect(await res.json()).toEqual({ error: "Failed to process chat request", code: "chat_failed" });
   });
 
   it("masks model errors in the stream", async () => {
@@ -268,6 +275,6 @@ describe("POST /api/chat", () => {
     });
     const body = await (await chat(post(valid))).text();
     expect(body).not.toContain("secret upstream detail");
-    expect(body).toContain("The assistant could not respond");
+    expect(body).toContain("chat_failed");
   });
 });

@@ -1,6 +1,5 @@
 "use client";
 
-import { LineChart } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import Analytics from "@/components/Analytics";
@@ -12,12 +11,24 @@ import NewsFeed from "@/components/NewsFeed";
 import SearchForm from "@/components/SearchForm";
 import SummarySection from "@/components/SummarySection";
 import { trackEvent } from "@/lib/analytics";
-import { LanguageProvider, useLanguage } from "@/lib/i18n";
+import { errorKey, isErrorCode } from "@/lib/errors";
+import {
+  LanguageProvider,
+  useLanguage,
+  type Language,
+  type TranslationKey,
+} from "@/lib/i18n";
 import { useRecentTickers } from "@/lib/recent-tickers";
 import { createSseParser } from "@/lib/sse";
 import type { NewsArticle, PartialSummary, Provider } from "@/lib/types";
 
 const PROVIDER: Provider = "anthropic";
+
+interface UiError {
+  key: TranslationKey;
+  vars?: Record<string, string | number>;
+  suffix?: string;
+}
 
 export function HomeContent() {
   const { t, language } = useLanguage();
@@ -26,10 +37,16 @@ export function HomeContent() {
   const [summary, setSummary] = useState<PartialSummary | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const [newsError, setNewsError] = useState<string | null>(null);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
+  // Language the current summary was generated in (the model writes it once).
+  const [summaryLanguage, setSummaryLanguage] = useState<Language | null>(null);
+  // Errors are stored as translation keys and rendered with t(), so they
+  // follow the language toggle like the rest of the UI.
+  const [newsError, setNewsError] = useState<UiError | null>(null);
+  const [summaryError, setSummaryError] = useState<UiError | null>(null);
 
   const { recentTickers, addTicker } = useRecentTickers();
+  const renderError = (e: UiError | null): string | null =>
+    e ? `${t(e.key, e.vars)}${e.suffix ?? ""}` : null;
   const abortRef = useRef<AbortController | null>(null);
 
   // Cancel any in-flight stream when the page unmounts.
@@ -48,6 +65,7 @@ export function HomeContent() {
       setSummaryError(null);
       setHasStarted(true);
       setIsStreaming(true);
+      setSummaryLanguage(language);
       addTicker(nextTicker);
       trackEvent("analyze_ticker", { ticker: nextTicker, language });
 
@@ -64,13 +82,15 @@ export function HomeContent() {
         });
 
         if (!res.ok || !res.body) {
-          const message = await res
+          const code: unknown = await res
             .json()
-            .then((j: { error?: string }) => j.error)
+            .then((j: { code?: unknown }) => j.code)
             .catch(() => null);
-          const text = message ?? `${t("requestFailed")} (${res.status})`;
-          setNewsError(text);
-          setSummaryError(text);
+          const uiError: UiError = isErrorCode(code)
+            ? { key: errorKey(code), vars: { ticker: nextTicker } }
+            : { key: "requestFailed", suffix: ` (${res.status})` };
+          setNewsError(uiError);
+          setSummaryError(uiError);
           trackEvent("analyze_error", { status: res.status });
           return;
         }
@@ -85,14 +105,18 @@ export function HomeContent() {
           for (const chunk of parse(decoder.decode(value, { stream: true }))) {
             if (chunk.type === "articles") setArticles(chunk.data);
             else if (chunk.type === "object") setSummary(chunk.data);
-            else if (chunk.type === "error") setSummaryError(chunk.data);
+            else if (chunk.type === "error")
+              setSummaryError(
+                chunk.code
+                  ? { key: errorKey(chunk.code), vars: { ticker: nextTicker } }
+                  : { key: "errorSummaryFailed" },
+              );
           }
         }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
-        const message = err instanceof Error ? err.message : t("requestFailed");
-        setSummaryError(message);
-        setNewsError(message);
+        setSummaryError({ key: "networkError" });
+        setNewsError({ key: "networkError" });
       } finally {
         if (abortRef.current === controller) {
           setIsStreaming(false);
@@ -100,50 +124,54 @@ export function HomeContent() {
         }
       }
     },
-    [language, t, addTicker],
+    [language, addTicker],
   );
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-8 sm:px-6 sm:py-14 lg:py-16">
-      <div className="flex justify-end">
-        <LanguageToggle />
-      </div>
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 pb-12 pt-4 sm:px-6 sm:gap-16">
+      <header>
+        <div className="flex items-center justify-between gap-4 border-b border-rule pb-3">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-subtle">
+            {t("headerBadge")}
+          </p>
+          <LanguageToggle />
+        </div>
 
-      <header className="flex flex-col items-center gap-5 text-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-300">
-          <LineChart className="size-3.5" aria-hidden="true" />
-          {t("headerBadge")}
-        </span>
-        <h1 className="max-w-2xl text-balance text-4xl font-semibold tracking-tight text-zinc-50 sm:text-5xl">
-          {t("appTitle")}
-        </h1>
-        <p className="max-w-xl text-balance text-zinc-400">{t("appSubtitle")}</p>
-        <div className="w-full max-w-2xl pt-2">
+        <div className="border-b-2 border-ink pb-6 pt-8 sm:pt-12">
+          <h1 className="font-serif text-5xl font-medium leading-[0.95] tracking-tight text-ink sm:text-7xl">
+            {t("appTitle")}
+          </h1>
+          <p className="mt-4 max-w-2xl font-serif text-lg italic leading-snug text-ink-soft sm:text-xl">
+            {t("appSubtitle")}
+          </p>
+        </div>
+
+        <div className="mt-6 max-w-3xl">
           <SearchForm
             isLoading={isStreaming}
             provider={PROVIDER}
             onSubmit={handleSubmit}
           />
-        </div>
 
-        {recentTickers.length > 0 ? (
-          <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="font-semibold uppercase tracking-wider text-zinc-500">
-              {t("recentLabel")}
-            </span>
-            {recentTickers.map((tk) => (
-              <button
-                key={tk}
-                type="button"
-                disabled={isStreaming}
-                onClick={() => handleSubmit(tk, PROVIDER)}
-                className="rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 font-mono font-medium text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {tk}
-              </button>
-            ))}
-          </div>
-        ) : null}
+          {recentTickers.length > 0 ? (
+            <div className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-1 text-sm">
+              <span className="mr-2 font-mono text-[11px] uppercase tracking-[0.18em] text-subtle">
+                {t("recentLabel")}
+              </span>
+              {recentTickers.map((tk) => (
+                <button
+                  key={tk}
+                  type="button"
+                  disabled={isStreaming}
+                  onClick={() => handleSubmit(tk, PROVIDER)}
+                  className="min-h-9 px-2 font-mono text-sm font-medium text-ink underline decoration-rule-strong underline-offset-4 transition-colors hover:decoration-ink disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {tk}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </header>
 
       {hasStarted ? (
@@ -154,7 +182,9 @@ export function HomeContent() {
             summary={summary}
             isStreaming={isStreaming}
             hasStarted={hasStarted}
-            error={summaryError}
+            error={renderError(summaryError)}
+            summaryLanguage={summaryLanguage}
+            onRegenerate={() => ticker && handleSubmit(ticker, PROVIDER)}
             articles={articles}
             provider={PROVIDER}
           />
@@ -162,7 +192,7 @@ export function HomeContent() {
             ticker={ticker}
             articles={articles}
             isLoading={isStreaming && articles.length === 0}
-            error={newsError}
+            error={renderError(newsError)}
           />
         </>
       ) : null}

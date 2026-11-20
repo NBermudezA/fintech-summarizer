@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import type { ErrorCode } from "@/lib/errors";
+
 export type Sentiment = "positive" | "negative" | "neutral";
 
 export type Provider = "anthropic" | "openai";
@@ -111,4 +113,4 @@ export type StreamChunk =
   | { type: "articles"; data: NewsArticle[] }
   | { type: "object"; data: PartialSummary }
   | { type: "done" }
-  | { type: "error"; data: string };
+  | { type: "error"; data: string; code?: ErrorCode };

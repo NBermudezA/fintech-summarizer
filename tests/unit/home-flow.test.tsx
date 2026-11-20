@@ -132,12 +132,47 @@ describe("Home page — full front-end pipeline", () => {
     await waitFor(() => expect(screen.getByText("1 article")).toBeInTheDocument());
   });
 
+  it("offers to regenerate the summary after switching language", async () => {
+    const done = () =>
+      sseResponse([
+        { type: "articles", data: ARTICLES },
+        { type: "object", data: { headline: "Nvidia surges", marketOverview: "Chips rally." } },
+        { type: "done" },
+      ]);
+    fetchMock.mockResolvedValueOnce(done());
+    render(<HomeApp />);
+    await analyze("nvda");
+    await screen.findByText("Chips rally.");
+    expect(screen.queryByText(/This summary was written in/)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("radio", { name: "ES" }));
+    expect(screen.getByText("Este resumen está en inglés.")).toBeInTheDocument();
+
+    fetchMock.mockResolvedValueOnce(done());
+    await userEvent.click(screen.getByRole("button", { name: "Generarlo en español" }));
+    const body = JSON.parse(fetchMock.mock.calls[1][1]!.body as string);
+    expect(body).toMatchObject({ ticker: "NVDA", language: "es" });
+    await waitFor(() =>
+      expect(screen.queryByText("Este resumen está en inglés.")).not.toBeInTheDocument(),
+    );
+  });
+
   it("shows server errors in both panels", async () => {
-    fetchMock.mockResolvedValueOnce(Response.json({ error: "Too many requests." }, { status: 429 }));
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ error: "Too many requests.", code: "rate_limited" }, { status: 429 }),
+    );
     render(<HomeApp />);
     await analyze("AAPL");
-    expect(await screen.findAllByText("Too many requests.")).toHaveLength(2);
+    expect(
+      await screen.findAllByText("Too many requests. Please wait a moment and try again."),
+    ).toHaveLength(2);
     expect(gtag).toHaveBeenCalledWith("event", "analyze_error", { status: 429 });
+
+    // Errors follow the language toggle.
+    await userEvent.click(screen.getByRole("radio", { name: "ES" }));
+    expect(
+      screen.getAllByText("Demasiadas solicitudes. Espera un momento y vuelve a intentarlo."),
+    ).toHaveLength(2);
   });
 
   it("falls back to a status message when the error body is not JSON", async () => {
@@ -151,13 +186,13 @@ describe("Home page — full front-end pipeline", () => {
     fetchMock.mockResolvedValueOnce(
       sseResponse([
         { type: "articles", data: [] },
-        { type: "error", data: 'No recent articles found for "ZZZ".' },
+        { type: "error", code: "no_articles", data: 'No recent articles found for "ZZZ".' },
         { type: "done" },
       ]),
     );
     render(<HomeApp />);
     await analyze("zzz");
-    expect(await screen.findByText('No recent articles found for "ZZZ".')).toBeInTheDocument();
+    expect(await screen.findByText("No recent articles found for ZZZ.")).toBeInTheDocument();
     expect(screen.getByText("No articles found for ZZZ.")).toBeInTheDocument();
   });
 
@@ -165,15 +200,22 @@ describe("Home page — full front-end pipeline", () => {
     fetchMock.mockRejectedValueOnce(new Error("Network down"));
     render(<HomeApp />);
     await analyze("AAPL");
-    expect(await screen.findAllByText("Network down")).toHaveLength(2);
+    expect(
+      await screen.findAllByText("Network error. Check your connection and try again."),
+    ).toHaveLength(2);
 
     fetchMock.mockRejectedValueOnce(Object.assign(new Error("aborted"), { name: "AbortError" }));
     await userEvent.click(screen.getByRole("button", { name: "Analyze" }));
     await waitFor(() => expect(screen.queryByText("aborted")).not.toBeInTheDocument());
 
-    fetchMock.mockRejectedValueOnce("weird");
+    // A stream error without a code falls back to the generic summary error.
+    fetchMock.mockResolvedValueOnce(
+      sseResponse([{ type: "articles", data: [] }, { type: "error", data: "boom" }, { type: "done" }]),
+    );
     await userEvent.click(screen.getByRole("button", { name: "Analyze" }));
-    expect(await screen.findAllByText("Request failed")).toHaveLength(2);
+    expect(
+      await screen.findByText("The AI summary could not be generated. Please try again."),
+    ).toBeInTheDocument();
   });
 
   it("shows skeletons while waiting and aborts the stream on unmount", async () => {

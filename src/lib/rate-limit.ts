@@ -1,3 +1,5 @@
+import { errorResponse } from "@/lib/errors";
+
 // Best-effort fixed-window limiter. State lives in the serverless instance's
 // memory, so it slows casual abuse but is not a global guarantee: for that,
 // swap the Map for a shared store (Upstash Redis / Vercel KV) behind the same
@@ -48,12 +50,12 @@ export function clientKey(req: Request): string {
 }
 
 export function tooManyRequests(retryAfterSeconds: number): Response {
-  return Response.json(
-    { error: "Too many requests. Please wait a moment and try again." },
-    {
-      status: 429,
-      headers: { "Retry-After": String(Math.max(1, retryAfterSeconds)) },
-    },
+  return errorResponse(
+    "rate_limited",
+    "Too many requests. Please wait a moment and try again.",
+    429,
+    {},
+    { "Retry-After": String(Math.max(1, retryAfterSeconds)) },
   );
 }
 

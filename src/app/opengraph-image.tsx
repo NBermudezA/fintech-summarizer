@@ -5,6 +5,10 @@ export const alt =
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const PAPER = "#f6f3ec";
+const INK = "#1a1917";
+const SUBTLE = "#5f5b54";
+
 export default function OpengraphImage() {
   return new ImageResponse(
     (
@@ -14,53 +18,65 @@ export default function OpengraphImage() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
-          padding: "80px",
-          background:
-            "radial-gradient(circle at 0% 0%, rgba(16,185,129,0.25), transparent 50%), #050505",
-          color: "#fafafa",
-          fontFamily: "sans-serif",
+          padding: "64px 80px",
+          background: PAPER,
+          color: INK,
+          fontFamily: "serif",
         }}
       >
         <div
           style={{
             display: "flex",
-            alignSelf: "flex-start",
-            padding: "8px 20px",
-            borderRadius: 999,
-            border: "1px solid rgba(16,185,129,0.4)",
-            color: "#6ee7b7",
-            fontSize: 28,
+            justifyContent: "space-between",
+            paddingBottom: 16,
+            borderBottom: `1px solid ${SUBTLE}`,
+            fontFamily: "monospace",
+            fontSize: 22,
+            letterSpacing: 4,
+            color: SUBTLE,
           }}
         >
-          AI-powered market briefings
+          <span>AI MARKET BRIEFINGS</span>
+          <span>STOCKS · CRYPTO</span>
         </div>
-        <div style={{ fontSize: 96, fontWeight: 700, marginTop: 32 }}>
+        <div
+          style={{
+            display: "flex",
+            marginTop: 64,
+            fontSize: 120,
+            fontWeight: 500,
+            letterSpacing: -3,
+            lineHeight: 1,
+          }}
+        >
           Fintech Summarizer
         </div>
-        <div style={{ fontSize: 36, color: "#a1a1aa", marginTop: 16 }}>
-          Latest news + streaming AI summary for AAPL, NVDA, BTC and more.
+        <div
+          style={{
+            display: "flex",
+            marginTop: 28,
+            paddingBottom: 40,
+            borderBottom: `4px solid ${INK}`,
+            fontSize: 38,
+            fontStyle: "italic",
+            color: "#3b3935",
+          }}
+        >
+          The latest news on any ticker, summarized by Claude in seconds.
         </div>
-        <div style={{ display: "flex", gap: 16, marginTop: 48 }}>
-          {["BULLISH", "NEUTRAL", "BEARISH"].map((s, i) => (
-            <div
-              key={s}
-              style={{
-                padding: "10px 22px",
-                borderRadius: 999,
-                fontSize: 26,
-                fontWeight: 600,
-                color: ["#6ee7b7", "#d4d4d8", "#fda4af"][i],
-                background: [
-                  "rgba(16,185,129,0.12)",
-                  "rgba(113,113,122,0.15)",
-                  "rgba(244,63,94,0.12)",
-                ][i],
-              }}
-            >
-              {s}
-            </div>
-          ))}
+        <div
+          style={{
+            display: "flex",
+            gap: 40,
+            marginTop: 36,
+            fontFamily: "monospace",
+            fontSize: 28,
+            letterSpacing: 2,
+          }}
+        >
+          <span style={{ color: "#17703f" }}>BULLISH</span>
+          <span style={{ color: SUBTLE }}>NEUTRAL</span>
+          <span style={{ color: "#b42318" }}>BEARISH</span>
         </div>
       </div>
     ),

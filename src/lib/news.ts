@@ -1,3 +1,4 @@
+import type { ErrorCode } from "@/lib/errors";
 import { POPULAR_TICKERS } from "@/lib/tickers";
 import type { NewsArticle } from "@/lib/types";
 
@@ -160,6 +161,7 @@ export class NewsProviderError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly code: ErrorCode = "news_unavailable",
   ) {
     super(message);
     this.name = "NewsProviderError";
@@ -182,12 +184,13 @@ async function finnhubGet(
   });
   if (!res.ok) {
     console.error("[news] Finnhub responded", res.status, path);
-    throw new NewsProviderError(
-      res.status === 429
-        ? "News provider rate limit reached. Please try again in a minute."
-        : "News provider is unavailable",
-      502,
-    );
+    throw res.status === 429
+      ? new NewsProviderError(
+          "News provider rate limit reached. Please try again in a minute.",
+          502,
+          "news_rate_limited",
+        )
+      : new NewsProviderError("News provider is unavailable", 502);
   }
   const json: unknown = await res.json();
   return Array.isArray(json) ? (json as RawArticle[]) : [];
@@ -221,7 +224,7 @@ export async function fetchArticles(
   now: Date = new Date(),
 ): Promise<NewsArticle[]> {
   if (!apiKey) {
-    throw new NewsProviderError("News provider is not configured", 500);
+    throw new NewsProviderError("News provider is not configured", 500, "news_not_configured");
   }
   const symbol = ticker.toUpperCase();
 

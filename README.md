@@ -15,6 +15,8 @@ AI market briefings for any stock or crypto ticker. Type `NVDA` or `BTC` and get
 - **Production hardening** — per-IP rate limits, same-origin checks, bounded request schemas, generic errors, security headers, patched dependencies.
 - **SEO + GEO** — metadata, Open Graph image, `robots.txt` that welcomes AI crawlers, `sitemap.xml`, `llms.txt`, JSON-LD (`WebApplication` + `FAQPage`), crawlable "How it works" and FAQ.
 - **Privacy-first analytics** — Google Analytics 4 loads only when configured **and** the visitor opts in.
+- **Editorial design** — a "financial paper" visual system (paper and ink, serif headlines, hairline rules), light and dark, WCAG AA checked with axe.
+- **Fully bilingual** — every string in EN/ES (parity tested); API errors are translated codes; a summary can be regenerated after switching language.
 - **Tested** — 91 unit/integration tests (≥95% coverage gate, currently ~99.8% lines) and 22 Playwright E2E tests on desktop + mobile, including axe WCAG 2.1 AA. CI on every push.
 
 ## Stack
