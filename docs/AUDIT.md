@@ -57,16 +57,35 @@ Sin problemas: no hay secretos en el código ni en el historial de git (solo el 
 3. Desde ese momento aparece el banner; tras aceptar se envían `page_view`, `analyze_ticker`, `analyze_error` y `chat_message`.
 4. Opcional: Vercel Analytics / Speed Insights para Core Web Vitals sin cookies.
 
-## Pendientes (ordenados por prioridad)
+## Pendientes
 
-1. ✅ `FINNHUB_API_KEY` agregada en Vercel. Opcional: borrar la variable antigua `NEWS_API_KEY`.
-2. ✅ **Finnhub validado en producción** (AAPL, NVDA, MSFT, BTC). Su etiquetado por empresa es laxo (para NVDA traía SpaceX o BJ's Wholesale), así que se filtran los artículos que no nombran a la empresa.
-3. **Revisar Haiku 5.5 en el preview** (latencia y calidad). Para volver atrás: `ANTHROPIC_MODEL=claude-haiku-4-5-20251001`.
-4. ✅ **Límite de gasto**: producción usa una clave propia (`ANTHROPIC_PROD_KEY`) con límite en la consola de Anthropic; `ANTHROPIC_API_KEY` queda para desarrollo y previews.
-5. ✅ **Dominio**: `nicobermudez.com` (Cloudflare) → `fintech.nicobermudez.com` en Vercel, CNAME sin proxy, `fintech-summarizer.vercel.app` redirige con 308.
-6. **Pendiente — Search Console y Bing** (paso 6 de [DEPLOYMENT.md §4](DEPLOYMENT.md#4-custom-domain-cloudflare-dns--vercel)): propiedad de dominio `nicobermudez.com` con registro TXT en Cloudflare y envío de `https://fintech.nicobermudez.com/sitemap.xml`; luego importar en Bing Webmaster Tools.
-7. **Pendiente — Google Analytics**: crear la propiedad GA4 con la URL `https://fintech.nicobermudez.com`, poner `NEXT_PUBLIC_GA_ID` en Vercel y volver a desplegar ([DEPLOYMENT.md §3](DEPLOYMENT.md#3-google-analytics-4)).
-8. **Más adelante**: límite de uso global con Upstash; caché de noticias por ticker (cuida el límite de 60/min de Finnhub); CSP con nonces; citas `[1]`, `[2]` por punto clave.
+Actualizado el 2026-11-20. La app está en producción en https://fintech.nicobermudez.com.
+
+### Para retomar otro día
+
+1. **Google Analytics 4** — ver [DEPLOYMENT.md §3](DEPLOYMENT.md#3-google-analytics-4).
+   - analytics.google.com → Admin → Crear propiedad → flujo de datos **Web** con la URL `https://fintech.nicobermudez.com` → copiar el ID `G-XXXXXXXXXX`.
+   - Vercel → Settings → Environment Variables → `NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX` (Production y Preview) → **Redeploy** (la variable se incorpora en el build).
+   - Verificar: aparece el banner de cookies; tras aceptar, GA → Informes → Tiempo real muestra la visita. Opcional: marcar `analyze_ticker` como evento clave.
+2. **Google Search Console y Bing Webmaster Tools** — ver [DEPLOYMENT.md §4, paso 6](DEPLOYMENT.md#4-custom-domain-cloudflare-dns--vercel).
+   - Search Console → Agregar propiedad de tipo **Dominio** `nicobermudez.com` → copiar el registro TXT → Cloudflare → DNS → Records → agregarlo → Verificar.
+   - Sitemaps → enviar `https://fintech.nicobermudez.com/sitemap.xml`.
+   - Bing Webmaster Tools → importar el sitio desde Search Console (Bing también alimenta a ChatGPT Search y Copilot).
+
+### Hecho
+
+- ✅ Noticias migradas a Finnhub (`FINNHUB_API_KEY`), validado en producción, con filtro y ranking por relevancia. Opcional: borrar la variable antigua `NEWS_API_KEY` en Vercel.
+- ✅ Claude Haiku 5.5 con `effort: "low"` en producción (~4 s por resumen). Para volver atrás: `ANTHROPIC_MODEL=claude-haiku-4-5-20251001`.
+- ✅ Límite de gasto: producción usa `ANTHROPIC_PROD_KEY` (con límite en la consola de Anthropic); `ANTHROPIC_API_KEY` para desarrollo y previews (Preview habilitado).
+- ✅ Dominio: `fintech.nicobermudez.com` (CNAME sin proxy en Cloudflare); `fintech-summarizer.vercel.app` redirige con 308; la raíz `nicobermudez.com` configurada.
+- ✅ Rediseño editorial (claro/oscuro) y cobertura completa EN/ES, incluidos los errores de la API.
+
+### Más adelante (opcional)
+
+- Límite de uso global con Upstash Redis (hoy es por instancia).
+- Caché de noticias por ticker (cuida el límite de 60 llamadas/min de Finnhub).
+- CSP con nonces.
+- Citas `[1]`, `[2]` en cada punto clave, enlazadas a su artículo.
 
 ## Auditoría visual (2026-11-17)
 
