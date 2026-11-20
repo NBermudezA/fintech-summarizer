@@ -3,14 +3,17 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   COMPANY_NEWS_LOOKBACK_DAYS,
+  companyNames,
   cryptoKeywords,
   decodeEntities,
   fetchArticles,
   FINNHUB_BASE_URL,
   isCrypto,
   mentions,
+  mentionsCompany,
   NewsProviderError,
   normalizeArticles,
+  normalizeCompanyName,
   sanitizeUrl,
 } from "@/lib/news";
 
@@ -71,6 +74,33 @@ describe("crypto helpers", () => {
     expect(mentions({ headline: "BTCS shares jump" }, ["BTC"])).toBe(false);
     expect(mentions({}, ["BTC"])).toBe(false);
     expect(mentions({ headline: "C++ rocks" }, ["C++"])).toBe(false); // regex-safe
+  });
+});
+
+describe("company relevance", () => {
+  it("normalizes company names from Finnhub profiles", () => {
+    expect(normalizeCompanyName("NVIDIA Corp")).toBe("NVIDIA");
+    expect(normalizeCompanyName("Alphabet Inc. Class A")).toBe("Alphabet");
+    expect(normalizeCompanyName("Berkshire Hathaway Holdings, Inc.")).toBe("Berkshire Hathaway");
+    expect(normalizeCompanyName("  Tesla  ")).toBe("Tesla");
+  });
+
+  it("uses popular-ticker names and aliases, else the profile name", () => {
+    expect(companyNames("googl")).toEqual(["Alphabet", "Google"]);
+    expect(companyNames("META")).toEqual(["Meta Platforms", "Meta", "Facebook"]);
+    expect(companyNames("AAPL")).toEqual(["Apple"]);
+    expect(companyNames("SNOW", "Snowflake Inc")).toEqual(["Snowflake"]);
+    expect(companyNames("XYZ")).toEqual([]);
+    expect(companyNames("XYZ", null)).toEqual([]);
+  });
+
+  it("matches the symbol case-sensitively and names case-insensitively", () => {
+    expect(mentionsCompany({ headline: "Why NVDA fell" }, "NVDA", [])).toBe(true);
+    expect(mentionsCompany({ summary: "nvidia guidance" }, "NVDA", ["NVIDIA"])).toBe(true);
+    expect(mentionsCompany({ headline: "Buy now or wait?" }, "NOW", [])).toBe(false);
+    expect(mentionsCompany({ headline: "ServiceNow (NOW) beats" }, "NOW", [])).toBe(true);
+    expect(mentionsCompany({ headline: "SpaceX raises $32B" }, "NVDA", ["NVIDIA"])).toBe(false);
+    expect(mentionsCompany({}, "NVDA", ["NVIDIA"])).toBe(false);
   });
 });
 
@@ -141,6 +171,67 @@ describe("fetchArticles (Finnhub)", () => {
     expect((init.headers as Record<string, string>)["X-Finnhub-Token"]).toBe("secret");
   });
 
+  it("keeps only company news that names the company", async () => {
+    const f = fakeFetch({
+      "/company-news": [
+        item(1, { headline: "Nvidia beats estimates" }),
+        item(2, { headline: "SpaceX raises $32B for AI chips", summary: "" }),
+        item(3, { headline: "Chip stocks rally", summary: "NVDA led the gains" }),
+        item(4, { headline: "BJ's Wholesale Q3 earnings call", summary: "" }),
+      ],
+    });
+    const out = await fetchArticles("NVDA", "k", f as unknown as typeof fetch, NOW);
+    expect(out.map((a) => a.url)).toEqual(["https://news.test/3", "https://news.test/1"]);
+    expect(f).toHaveBeenCalledTimes(1); // known ticker: no profile lookup
+  });
+
+  it("looks up the profile name for other tickers and filters with it", async () => {
+    const f = fakeFetch({
+      "/company-news": [
+        item(1, { headline: "Snowflake raises guidance" }),
+        item(2, { headline: "Unrelated retail story", summary: "" }),
+        item(3, { headline: "Data stocks", summary: "snowflake and peers rose" }),
+      ],
+      "/stock/profile2": { name: "Snowflake Inc" },
+    });
+    const out = await fetchArticles("SNOW", "k", f as unknown as typeof fetch, NOW);
+    expect(out).toHaveLength(2);
+    const profileCall = f.mock.calls.find(([u]) => String(u).includes("/stock/profile2"));
+    expect(new URL(String(profileCall![0])).searchParams.get("symbol")).toBe("SNOW");
+  });
+
+  it("falls back to the unfiltered feed when too few articles match", async () => {
+    const f = fakeFetch({
+      "/company-news": [
+        item(1, { headline: "Apple unveils glasses" }),
+        item(2, { headline: "Fund letter", summary: "" }),
+        item(3, { headline: "Macro outlook", summary: "" }),
+      ],
+    });
+    const out = await fetchArticles("AAPL", "k", f as unknown as typeof fetch, NOW);
+    expect(out).toHaveLength(3);
+  });
+
+  it("ignores profile lookup failures", async () => {
+    const throwing = vi.fn(async (input: URL | RequestInfo) => {
+      const path = new URL(String(input)).pathname;
+      if (path.endsWith("/stock/profile2")) throw new Error("network");
+      return Response.json([item(1, { headline: "Zeta news" }), item(2, { headline: "Other" })]);
+    });
+    await expect(
+      fetchArticles("ZETA", "k", throwing as unknown as typeof fetch, NOW),
+    ).resolves.toHaveLength(2);
+
+    const notOk = fakeFetch({
+      "/company-news": [item(1), item(2)],
+      "/stock/profile2": new Response("", { status: 403 }),
+    });
+    await expect(fetchArticles("ZETA", "k", notOk as unknown as typeof fetch, NOW)).resolves.toHaveLength(2);
+
+    const emptyName = fakeFetch({ "/company-news": [item(1)], "/stock/profile2": { name: "  " } });
+    await expect(fetchArticles("ZETA", "k", emptyName as unknown as typeof fetch, NOW)).resolves.toHaveLength(1);
+  });
+
   it("uses filtered crypto market news for known coins", async () => {
     const f = fakeFetch({
       "/news": [
@@ -162,7 +253,7 @@ describe("fetchArticles (Finnhub)", () => {
       "/news": [item(1, { headline: "PEPE memecoin surges" }), item(2, { headline: "Other coin" })],
     });
     const out = await fetchArticles("PEPE", "k", f as unknown as typeof fetch, NOW);
-    expect(f).toHaveBeenCalledTimes(2);
+    expect(f).toHaveBeenCalledTimes(3); // company-news + profile2 + crypto news
     expect(out).toHaveLength(1);
   });
 

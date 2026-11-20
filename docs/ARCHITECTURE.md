@@ -78,7 +78,7 @@ sequenceDiagram
 
 | Module | Responsibility |
 |---|---|
-| `lib/news.ts` | Finnhub client. Stocks use `/company-news` (articles tagged with the exact symbol, so they are relevant by construction); coins use `/news?category=crypto` filtered by whole-word symbol/name; a symbol with no company news falls back to crypto. Normalizes to `NewsArticle`, keeps the newest 5, dedupes by URL, decodes HTML entities, allows only `http(s)` links and `https` images. Token in the `X-Finnhub-Token` header. |
+| `lib/news.ts` | Finnhub client. Stocks use `/company-news` (last 7 days); Finnhub tags it loosely, so articles are kept only if the headline/summary names the company (symbol case-sensitive; names and aliases from `tickers.ts`, or Finnhub's `/stock/profile2` name for other tickers), falling back to the unfiltered feed when fewer than 2 match; coins use `/news?category=crypto` filtered by whole-word symbol/name; a symbol with no company news falls back to crypto. Normalizes to `NewsArticle`, keeps the newest 5, dedupes by URL, decodes HTML entities, allows only `http(s)` links and `https` images. Token in the `X-Finnhub-Token` header. |
 | `lib/prompts.ts` | Summary prompt and chat system prompt (§4). |
 | `lib/models.ts` | API key (`ANTHROPIC_PROD_KEY` in production, else `ANTHROPIC_API_KEY`), model choice (`ANTHROPIC_MODEL`, default `claude-haiku-5-5`) and `providerOptions` (`effort: "low"`, only for Claude 5.x models, which accept it). |
 | `lib/rate-limit.ts` | Fixed-window per-IP limiter, `clientKey` (from `x-forwarded-for`), `isAllowedOrigin`, 429 helper. |
@@ -150,7 +150,7 @@ Coverage thresholds are 95% for lines, statements, functions and branches (vendo
 |---|---|---|
 | Custom SSE for the summary instead of the AI SDK data stream | Articles must reach the UI before the model starts; a four-type protocol is easy to test | Own parser to maintain (small, fully tested) |
 | Client sends grounding context to `/api/chat` | Stateless server, no storage | Context is user-controlled → strict bounds, prompt defenses |
-| Finnhub instead of NewsAPI | NewsAPI's free plan forbids any production use; Finnhub's company news is symbol-tagged and real-time | Free plan is personal-use only; crypto has no per-coin endpoint (filtered feed instead); company news covers North American listings |
+| Finnhub instead of NewsAPI | NewsAPI's free plan forbids any production use; Finnhub's company news is real-time and symbol-tagged (loosely, hence the name filter) | Free plan is personal-use only; crypto has no per-coin endpoint (filtered feed instead); company news covers North American listings |
 | Claude Haiku 5.5 at low effort | Cheapest current model; summaries are short and well-structured | Adaptive thinking adds some latency vs. Haiku 4.5 |
 | In-memory rate limiting | Zero infrastructure | Per-instance, not global |
 | No nonce CSP yet | Keeps the page static (fast, cacheable) | Weaker XSS defense-in-depth |
