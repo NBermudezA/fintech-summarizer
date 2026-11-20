@@ -1,4 +1,4 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
 import type { LanguageModel, streamText } from "ai";
 
@@ -17,9 +17,18 @@ export function modelId(provider: Provider): string {
     : process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL;
 }
 
+/**
+ * Anthropic key for this deployment. Production uses ANTHROPIC_PROD_KEY, a
+ * separate key with its own spend limit in the Anthropic console; other
+ * environments (local, preview) use ANTHROPIC_API_KEY.
+ */
+export function anthropicApiKey(): string | undefined {
+  return process.env.ANTHROPIC_PROD_KEY || process.env.ANTHROPIC_API_KEY || undefined;
+}
+
 export function pickModel(provider: Provider): LanguageModel {
   return provider === "anthropic"
-    ? anthropic(modelId(provider))
+    ? createAnthropic({ apiKey: anthropicApiKey() })(modelId(provider))
     : openai(modelId(provider));
 }
 
@@ -39,6 +48,6 @@ export function providerOptions(provider: Provider): ProviderOptions {
 
 export function isProviderConfigured(provider: Provider): boolean {
   return provider === "anthropic"
-    ? Boolean(process.env.ANTHROPIC_API_KEY)
+    ? Boolean(anthropicApiKey())
     : Boolean(process.env.OPENAI_API_KEY);
 }

@@ -80,7 +80,7 @@ sequenceDiagram
 |---|---|
 | `lib/news.ts` | Finnhub client. Stocks use `/company-news` (articles tagged with the exact symbol, so they are relevant by construction); coins use `/news?category=crypto` filtered by whole-word symbol/name; a symbol with no company news falls back to crypto. Normalizes to `NewsArticle`, keeps the newest 5, dedupes by URL, decodes HTML entities, allows only `http(s)` links and `https` images. Token in the `X-Finnhub-Token` header. |
 | `lib/prompts.ts` | Summary prompt and chat system prompt (§4). |
-| `lib/models.ts` | Model choice (`ANTHROPIC_MODEL`, default `claude-haiku-5-5`) and `providerOptions` (`effort: "low"`, only for Claude 5.x models, which accept it). |
+| `lib/models.ts` | API key (`ANTHROPIC_PROD_KEY` in production, else `ANTHROPIC_API_KEY`), model choice (`ANTHROPIC_MODEL`, default `claude-haiku-5-5`) and `providerOptions` (`effort: "low"`, only for Claude 5.x models, which accept it). |
 | `lib/rate-limit.ts` | Fixed-window per-IP limiter, `clientKey` (from `x-forwarded-for`), `isAllowedOrigin`, 429 helper. |
 | `lib/sse.ts` | `encodeSse` (server) and `createSseParser` (client). |
 | `lib/types.ts` | Shared types and Zod schemas: request validation and the summary output schema. |

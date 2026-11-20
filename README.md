@@ -59,7 +59,8 @@ npm run dev                  # http://localhost:3000
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | yes | Claude API key |
+| `ANTHROPIC_PROD_KEY` | prod | Claude API key used in production (its own spend limit). Takes precedence when set |
+| `ANTHROPIC_API_KEY` | dev / preview | Claude API key for local development and previews |
 | `FINNHUB_API_KEY` | yes | News data — free key at [finnhub.io](https://finnhub.io) (free plan is for personal use) |
 | `ANTHROPIC_MODEL` | no | Override the model (default `claude-haiku-5-5`; e.g. `claude-haiku-4-5-20251001` to roll back) |
 | `NEXT_PUBLIC_GA_ID` | no | GA4 measurement ID (`G-…`). Unset = no banner, no analytics. Build-time variable: redeploy after changing it |

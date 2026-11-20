@@ -8,7 +8,8 @@ Set them for **Production** and **Preview**.
 
 | Variable | Required | Notes |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | yes | From console.anthropic.com → API keys |
+| `ANTHROPIC_PROD_KEY` | Production | Production-only Anthropic key with its own monthly spend limit. Used whenever it is set |
+| `ANTHROPIC_API_KEY` | Development / Preview | Key for local dev and preview deployments (fallback when `ANTHROPIC_PROD_KEY` is unset) |
 | `FINNHUB_API_KEY` | yes | Free at finnhub.io → Dashboard. Free plan: 60 calls/min, personal use |
 | `ANTHROPIC_MODEL` | no | Default `claude-haiku-5-5`. Set `claude-haiku-4-5-20251001` to roll back without a code change |
 | `NEXT_PUBLIC_GA_ID` | no | GA4 measurement ID. **Build-time**: redeploy after setting it |
@@ -19,13 +20,13 @@ Server-only variables (`ANTHROPIC_*`, `FINNHUB_*`) apply to the next request aft
 
 ## 2. First deploy checklist
 
-1. Add `ANTHROPIC_API_KEY` and `FINNHUB_API_KEY` (and remove `NEWS_API_KEY`).
+1. Add `ANTHROPIC_PROD_KEY` (Production), `ANTHROPIC_API_KEY` (Development + Preview) and `FINNHUB_API_KEY`; remove `NEWS_API_KEY`.
 2. Redeploy, open the preview and try a stock (`AAPL`, `NVDA`), a coin (`BTC`, `SOL`) and an unknown symbol.
 3. Smoke-test the deployment with the E2E suite (it mocks the API, so it checks the UI, SEO files and headers of the real deploy):
    ```bash
    E2E_BASE_URL=https://<preview-url> npm run test:e2e
    ```
-4. In the Anthropic console, set a **monthly spend limit** (Settings → Limits). It is the only hard cap on AI cost.
+4. In the Anthropic console, keep a **monthly spend limit** on the production key's workspace (Settings → Limits). It is the only hard cap on AI cost.
 5. Merge to `main`.
 
 ## 3. Google Analytics 4
