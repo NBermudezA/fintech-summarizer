@@ -63,11 +63,10 @@ Sin problemas: no hay secretos en el código ni en el historial de git (solo el 
 2. **Validar en el preview** con tu clave: AAPL, NVDA, JPM, BTC, SOL y un símbolo desconocido. El cliente de Finnhub se probó con datos simulados del formato documentado, no contra la API real, porque aquí no hay clave.
 3. **Revisar Haiku 5.5 en el preview** (latencia y calidad). Para volver atrás: `ANTHROPIC_MODEL=claude-haiku-4-5-20251001`.
 4. **Límite de gasto mensual** en la consola de Anthropic (5 minutos, el único tope duro de costo).
-5. **Google Analytics**: crear la propiedad y poner `NEXT_PUBLIC_GA_ID` en Vercel ([DEPLOYMENT.md](DEPLOYMENT.md#3-google-analytics-4)).
-6. ✅ **Dominio**: `nicobermudez.com` (Cloudflare) → `fintech.nicobermudez.com` en Vercel, CNAME sin proxy, `fintech-summarizer.vercel.app` redirige con 308.
-7. **Pendiente — Search Console y Bing** (paso 6 de [DEPLOYMENT.md §4](DEPLOYMENT.md#4-custom-domain-cloudflare-dns--vercel)): propiedad de dominio `nicobermudez.com` con registro TXT en Cloudflare y envío de `https://fintech.nicobermudez.com/sitemap.xml`; luego importar en Bing Webmaster Tools.
-8. **Pendiente — Google Analytics**: crear la propiedad GA4 con la URL `https://fintech.nicobermudez.com`, poner `NEXT_PUBLIC_GA_ID` en Vercel y volver a desplegar ([DEPLOYMENT.md §3](DEPLOYMENT.md#3-google-analytics-4)).
-9. **Más adelante**: límite de uso global con Upstash; caché de noticias por ticker (cuida el límite de 60/min de Finnhub); CSP con nonces; citas `[1]`, `[2]` por punto clave.
+5. ✅ **Dominio**: `nicobermudez.com` (Cloudflare) → `fintech.nicobermudez.com` en Vercel, CNAME sin proxy, `fintech-summarizer.vercel.app` redirige con 308.
+6. **Pendiente — Search Console y Bing** (paso 6 de [DEPLOYMENT.md §4](DEPLOYMENT.md#4-custom-domain-cloudflare-dns--vercel)): propiedad de dominio `nicobermudez.com` con registro TXT en Cloudflare y envío de `https://fintech.nicobermudez.com/sitemap.xml`; luego importar en Bing Webmaster Tools.
+7. **Pendiente — Google Analytics**: crear la propiedad GA4 con la URL `https://fintech.nicobermudez.com`, poner `NEXT_PUBLIC_GA_ID` en Vercel y volver a desplegar ([DEPLOYMENT.md §3](DEPLOYMENT.md#3-google-analytics-4)).
+8. **Más adelante**: límite de uso global con Upstash; caché de noticias por ticker (cuida el límite de 60/min de Finnhub); CSP con nonces; citas `[1]`, `[2]` por punto clave.
 
 ## Auditoría visual (2026-11-17)
 
