@@ -104,20 +104,38 @@ export function companyNames(symbol: string, profileName?: string | null): strin
  * names match case-insensitively.
  */
 export function mentionsCompany(article: RawArticle, symbol: string, names: string[]): boolean {
-  const text = `${article.headline ?? ""} ${article.summary ?? ""}`;
+  return companyRelevance(article, symbol, names) > 0;
+}
+
+function namesCompany(text: string, symbol: string, names: string[]): boolean {
   if (new RegExp(`\\b${escapeRegExp(symbol.toUpperCase())}\\b`).test(text)) return true;
   return names.some((n) => new RegExp(`\\b${escapeRegExp(n)}\\b`, "i").test(text));
+}
+
+/**
+ * 2 = the headline names the company (the story is about it), 1 = only the
+ * summary does (often a passing mention in a list), 0 = neither.
+ */
+export function companyRelevance(article: RawArticle, symbol: string, names: string[]): number {
+  if (namesCompany(article.headline ?? "", symbol, names)) return 2;
+  if (namesCompany(article.summary ?? "", symbol, names)) return 1;
+  return 0;
 }
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Newest first. */
+export function byRecency(a: RawArticle, b: RawArticle): number {
+  return (b.datetime ?? 0) - (a.datetime ?? 0);
+}
+
+/** Normalizes in the given order; callers sort first (see byRecency). */
 export function normalizeArticles(raw: RawArticle[]): NewsArticle[] {
   const seen = new Set<string>();
   const out: NewsArticle[] = [];
-  const sorted = [...raw].sort((a, b) => (b.datetime ?? 0) - (a.datetime ?? 0));
-  for (const a of sorted) {
+  for (const a of raw) {
     const url = sanitizeUrl(a.url);
     const title = a.headline ? decodeEntities(a.headline).trim() : "";
     if (!url || !title || seen.has(url)) continue;
@@ -221,9 +239,14 @@ export async function fetchArticles(
     ]);
     if (company.length > 0) {
       const names = companyNames(symbol, profileName);
-      const relevant = company.filter((a) => mentionsCompany(a, symbol, names));
+      // Headline mentions first, then summary-only mentions; newest first within each.
+      const relevant = company
+        .map((a) => ({ a, score: companyRelevance(a, symbol, names) }))
+        .filter((x) => x.score > 0)
+        .sort((x, y) => y.score - x.score || byRecency(x.a, y.a))
+        .map((x) => x.a);
       return normalizeArticles(
-        relevant.length >= MIN_RELEVANT_ARTICLES ? relevant : company,
+        relevant.length >= MIN_RELEVANT_ARTICLES ? relevant : [...company].sort(byRecency),
       );
     }
     // Unknown to Finnhub as a stock (e.g. DOGE): fall through to crypto news.
@@ -231,5 +254,5 @@ export async function fetchArticles(
 
   const crypto = await finnhubGet("/news", { category: "crypto" }, apiKey, fetchImpl);
   const keywords = cryptoKeywords(symbol);
-  return normalizeArticles(crypto.filter((a) => mentions(a, keywords)));
+  return normalizeArticles(crypto.filter((a) => mentions(a, keywords)).sort(byRecency));
 }
