@@ -2,8 +2,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  byRecency,
   COMPANY_NEWS_LOOKBACK_DAYS,
   companyNames,
+  companyRelevance,
   cryptoKeywords,
   decodeEntities,
   fetchArticles,
@@ -102,6 +104,19 @@ describe("company relevance", () => {
     expect(mentionsCompany({ headline: "SpaceX raises $32B" }, "NVDA", ["NVIDIA"])).toBe(false);
     expect(mentionsCompany({}, "NVDA", ["NVIDIA"])).toBe(false);
   });
+
+  it("scores headline mentions above summary-only mentions", () => {
+    expect(companyRelevance({ headline: "Nvidia falls 7%" }, "NVDA", ["NVIDIA"])).toBe(2);
+    expect(
+      companyRelevance({ headline: "SpaceX raises $32B", summary: "chips from Nvidia" }, "NVDA", ["NVIDIA"]),
+    ).toBe(1);
+    expect(companyRelevance({ headline: "Retail earnings" }, "NVDA", ["NVIDIA"])).toBe(0);
+  });
+
+  it("keeps input order (callers sort)", () => {
+    const out = normalizeArticles([item(1), item(9)]);
+    expect(out.map((a) => a.url)).toEqual(["https://news.test/1", "https://news.test/9"]);
+  });
 });
 
 describe("normalizeArticles", () => {
@@ -115,7 +130,7 @@ describe("normalizeArticles", () => {
       ...[6, 7, 8, 9].map((n) => item(n)),
       { headline: "Bare", url: "https://news.test/bare" },
     ];
-    const out = normalizeArticles(raw);
+    const out = normalizeArticles([...raw].sort(byRecency));
     expect(out.map((a) => a.url)).toEqual([
       "https://news.test/9",
       "https://news.test/8",
@@ -171,6 +186,23 @@ describe("fetchArticles (Finnhub)", () => {
     expect((init.headers as Record<string, string>)["X-Finnhub-Token"]).toBe("secret");
   });
 
+  it("ranks headline mentions before newer summary-only mentions", async () => {
+    const f = fakeFetch({
+      "/company-news": [
+        item(9, { headline: "SpaceX raises $32B for AI chips", summary: "Lenders want Nvidia exposure" }),
+        item(1, { headline: "Nvidia sinks 7% on probes", summary: "" }),
+        item(2, { headline: "Nvidia loses $2.3T since peak", summary: "" }),
+        item(8, { headline: "Retail earnings", summary: "" }),
+      ],
+    });
+    const out = await fetchArticles("NVDA", "k", f as unknown as typeof fetch, NOW);
+    expect(out.map((a) => a.url)).toEqual([
+      "https://news.test/2",
+      "https://news.test/1",
+      "https://news.test/9",
+    ]);
+  });
+
   it("keeps only company news that names the company", async () => {
     const f = fakeFetch({
       "/company-news": [
@@ -181,7 +213,8 @@ describe("fetchArticles (Finnhub)", () => {
       ],
     });
     const out = await fetchArticles("NVDA", "k", f as unknown as typeof fetch, NOW);
-    expect(out.map((a) => a.url)).toEqual(["https://news.test/3", "https://news.test/1"]);
+    // Headline mention (1) ranks above the newer summary-only mention (3).
+    expect(out.map((a) => a.url)).toEqual(["https://news.test/1", "https://news.test/3"]);
     expect(f).toHaveBeenCalledTimes(1); // known ticker: no profile lookup
   });
 
