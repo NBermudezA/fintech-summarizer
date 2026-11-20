@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("next/font/google", () => ({
   Geist: () => ({ variable: "font-sans" }),
   Geist_Mono: () => ({ variable: "font-mono" }),
+  Newsreader: () => ({ variable: "font-serif" }),
 }));
 
 const { default: robots, AI_CRAWLERS } = await import("@/app/robots");
@@ -40,7 +41,10 @@ describe("crawlability (SEO + GEO)", () => {
     expect(m.alternates?.canonical).toBe("/");
     expect(m.openGraph).toMatchObject({ siteName: "Fintech Summarizer", type: "website" });
     expect(m.twitter).toMatchObject({ card: "summary_large_image" });
-    expect(layout.viewport.themeColor).toBe("#050505");
+    expect(layout.viewport.themeColor).toEqual([
+      { media: "(prefers-color-scheme: light)", color: "#f6f3ec" },
+      { media: "(prefers-color-scheme: dark)", color: "#12110f" },
+    ]);
     expect(privacyMeta.alternates?.canonical).toBe("/privacy");
   });
 

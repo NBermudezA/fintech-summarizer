@@ -1,7 +1,6 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { MessageSquare, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -21,8 +20,14 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { trackEvent } from "@/lib/analytics";
-import { useLanguage } from "@/lib/i18n";
+import { codeFromChatError, errorKey } from "@/lib/errors";
+import { useLanguage, type TranslationKey } from "@/lib/i18n";
 import type { NewsArticle, PartialSummary, Provider } from "@/lib/types";
+
+function chatErrorKey(message: string): TranslationKey {
+  const code = codeFromChatError(message);
+  return code ? errorKey(code) : "errorChatFailed";
+}
 
 interface ChatProps {
   provider: Provider;
@@ -50,16 +55,10 @@ export default function Chat({
     : t("chatPlaceholderUngrounded");
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60">
-      <header className="flex shrink-0 items-center justify-between border-b border-zinc-800/80 px-5 py-3">
-        <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-          <MessageSquare
-            className="size-4 text-emerald-400"
-            aria-hidden="true"
-          />
-          {t("chatTitle")}
-        </div>
-        <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300 ring-1 ring-inset ring-emerald-500/20">
+    <div className="flex h-full flex-col overflow-hidden rounded-[3px] border border-rule bg-paper-raised">
+      <header className="flex shrink-0 items-baseline justify-between gap-3 border-b border-rule px-5 py-3">
+        <h2 className="font-serif text-lg font-medium text-ink">{t("chatTitle")}</h2>
+        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-subtle">
           {t("chatBadge")}
         </span>
       </header>
@@ -68,12 +67,7 @@ export default function Chat({
         <ConversationContent className="space-y-3 px-4 py-4">
           {messages.length === 0 ? (
             <ConversationEmptyState
-              icon={
-                <Sparkles
-                  className="size-6 text-emerald-300"
-                  aria-hidden="true"
-                />
-              }
+              className="items-start justify-start p-1 text-left"
               title={
                 grounded
                   ? t("chatEmptyTitleGrounded", { ticker: ticker ?? "" })
@@ -115,16 +109,16 @@ export default function Chat({
             ))
           )}
         </ConversationContent>
-        <ConversationScrollButton />
+        <ConversationScrollButton aria-label={t("scrollToLatest")} />
       </Conversation>
 
       {error ? (
-        <div className="shrink-0 border-t border-rose-500/30 bg-rose-500/5 px-5 py-2 text-xs text-rose-300">
-          {t("chatErrorPrefix")}: {error.message}
+        <div role="alert" className="shrink-0 border-t border-down/40 bg-highlight px-5 py-2 text-xs text-down">
+          {t("chatErrorPrefix")}: {t(chatErrorKey(error.message))}
         </div>
       ) : null}
 
-      <div className="shrink-0 border-t border-zinc-800/80 p-3">
+      <div className="shrink-0 border-t border-rule p-3">
         <PromptInput
           onSubmit={(message, event) => {
             event.preventDefault();
@@ -145,7 +139,7 @@ export default function Chat({
             setInput("");
             trackEvent("chat_message", { grounded, language });
           }}
-          className="flex items-end gap-2 rounded-xl bg-zinc-900/80 p-2 ring-1 ring-inset ring-zinc-800"
+          className="flex items-end gap-2 rounded-[3px] bg-paper p-1.5"
         >
           <PromptInputTextarea
             value={input}

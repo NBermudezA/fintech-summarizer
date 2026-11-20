@@ -17,11 +17,11 @@ export default function ConsentBanner() {
       role="dialog"
       aria-live="polite"
       aria-label={t("cookieSettings")}
-      className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-2xl flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/95 p-4 text-sm text-zinc-300 shadow-2xl backdrop-blur sm:flex-row sm:items-center"
+      className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-2xl flex-col gap-3 rounded-[3px] border border-ink bg-paper-raised p-4 text-sm text-ink-soft shadow-xl shadow-black/15 sm:flex-row sm:items-center"
     >
       <p className="flex-1 leading-relaxed">
         {t("consentText")}{" "}
-        <Link href="/privacy" className="text-emerald-300 underline-offset-2 hover:underline">
+        <Link href="/privacy" className="font-medium text-ink underline underline-offset-4">
           {t("privacyLink")}
         </Link>
       </p>
@@ -29,14 +29,14 @@ export default function ConsentBanner() {
         <button
           type="button"
           onClick={() => setConsent("denied")}
-          className="rounded-lg px-3 py-2 font-medium text-zinc-300 ring-1 ring-inset ring-zinc-700 transition-colors hover:bg-zinc-800"
+          className="min-h-10 rounded-[3px] border border-rule-strong px-4 font-medium text-ink transition-colors hover:bg-highlight"
         >
           {t("consentDecline")}
         </button>
         <button
           type="button"
           onClick={() => setConsent("granted")}
-          className="rounded-lg bg-emerald-500 px-3 py-2 font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
+          className="min-h-10 rounded-[3px] bg-ink px-4 font-semibold text-paper transition-colors hover:bg-ink-soft"
         >
           {t("consentAccept")}
         </button>

@@ -1,31 +1,76 @@
 @import "tailwindcss";
 
+/*
+ * Editorial "financial paper" theme: warm paper, ink, hairline rules, one
+ * restrained accent. Light by default, inky dark when the OS asks for it.
+ * Components use the semantic tokens below (bg-paper, text-ink, text-subtle,
+ * border-rule, text-up/down…), never raw palette colors.
+ */
 :root {
-  color-scheme: dark;
-  --background: #050505;
-  --foreground: #ededed;
+  color-scheme: light dark;
 
-  /* shadcn / AI Elements tokens (dark theme, emerald accent). The vendored
-     components in components/ui and components/ai-elements rely on these. */
-  --card: #0c0c0e;
-  --card-foreground: #ededed;
-  --popover: #09090b;
-  --popover-foreground: #ededed;
-  --primary: #10b981;
-  --primary-foreground: #04120c;
-  --secondary: #27272a;
-  --secondary-foreground: #f4f4f5;
-  --muted: #18181b;
-  --muted-foreground: #a1a1aa;
-  --accent: #27272a;
-  --accent-foreground: #f4f4f5;
-  --destructive: #f43f5e;
-  --border: #27272a;
-  --input: #3f3f46;
-  --ring: #34d399;
+  --paper: #f6f3ec;
+  --paper-raised: #fcfaf6;
+  --highlight: #ece6da;
+  --ink: #1a1917;
+  --ink-soft: #3b3935;
+  --subtle: #5f5b54; /* 6.2:1 on paper */
+  --rule: #d8d1c4; /* decorative hairlines */
+  --rule-strong: #8c8578; /* form borders, 3.4:1 on paper */
+  --accent: #0b5d4b;
+  --up: #17703f;
+  --down: #b42318;
+
+  /* shadcn / AI Elements tokens, mapped onto the theme. */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-raised);
+  --card-foreground: var(--ink);
+  --popover: var(--paper-raised);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--highlight);
+  --secondary-foreground: var(--ink);
+  --muted: var(--highlight);
+  --muted-foreground: var(--subtle);
+  --accent-ui: var(--highlight);
+  --accent-ui-foreground: var(--ink);
+  --destructive: var(--down);
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--accent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #12110f;
+    --paper-raised: #1a1916;
+    --highlight: #24221e;
+    --ink: #f1ede4;
+    --ink-soft: #d9d4c9;
+    --subtle: #a59f94; /* 7.4:1 on paper */
+    --rule: #36332e;
+    --rule-strong: #7d776c;
+    --accent: #6cc7aa;
+    --up: #63d08e;
+    --down: #ff8f84;
+  }
 }
 
 @theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-highlight: var(--highlight);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-subtle: var(--subtle);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-brand: var(--accent);
+  --color-up: var(--up);
+  --color-down: var(--down);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -38,34 +83,50 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent-ui);
+  --color-accent-foreground: var(--accent-ui-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-newsreader);
 }
 
 html,
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--paper);
+  color: var(--ink);
 }
 
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
-  background-image:
-    radial-gradient(
-      circle at 0% 0%,
-      rgba(16, 185, 129, 0.08),
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at 100% 0%,
-      rgba(59, 130, 246, 0.05),
-      transparent 45%
-    );
-  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * shadcn's InputGroup dims itself (has-disabled:opacity-50 + gray bg) when
+ * ANY descendant is disabled — including the chat's send button, which is
+ * disabled whenever the box is empty. Only dim when the textarea itself is
+ * disabled (while the assistant is answering).
+ */
+[data-slot="input-group"] {
+  border-radius: 3px;
+  background-color: var(--paper-raised);
+}
+[data-slot="input-group"]:has(button:disabled):not(:has(textarea:disabled)) {
+  background-color: var(--paper-raised);
+  opacity: 1;
 }

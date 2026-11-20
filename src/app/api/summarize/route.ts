@@ -1,5 +1,6 @@
 import { Output, streamText } from "ai";
 
+import { errorResponse } from "@/lib/errors";
 import { isProviderConfigured, pickModel, providerOptions } from "@/lib/models";
 import { fetchArticles, NewsProviderError } from "@/lib/news";
 import { buildSummaryPrompt } from "@/lib/prompts";
@@ -24,7 +25,7 @@ const GENERIC_MODEL_ERROR =
 
 export async function POST(req: Request): Promise<Response> {
   if (!isAllowedOrigin(req)) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
+    return errorResponse("forbidden", "Forbidden", 403);
   }
   const rl = summarizeLimiter.check(clientKey(req));
   if (!rl.ok) return tooManyRequests(rl.retryAfterSeconds);
@@ -33,24 +34,24 @@ export async function POST(req: Request): Promise<Response> {
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return errorResponse("invalid_request", "Invalid JSON body", 400);
   }
 
   const parsed = summarizeRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json(
-      { error: "Invalid request", issues: parsed.error.flatten() },
-      { status: 400 },
-    );
+    return errorResponse("invalid_request", "Invalid request", 400, {
+      issues: parsed.error.flatten(),
+    });
   }
 
   const { ticker, provider, language } = parsed.data;
 
   if (!isProviderConfigured(provider)) {
     console.error(`[summarize] provider "${provider}" has no API key`);
-    return Response.json(
-      { error: "The selected AI provider is not available." },
-      { status: 503 },
+    return errorResponse(
+      "provider_unavailable",
+      "The selected AI provider is not available.",
+      503,
     );
   }
 
@@ -58,13 +59,10 @@ export async function POST(req: Request): Promise<Response> {
   try {
     articles = await fetchArticles(ticker);
   } catch (err) {
-    const status = err instanceof NewsProviderError ? err.status : 502;
-    const message =
-      err instanceof NewsProviderError
-        ? err.message
-        : "Failed to fetch news";
     console.error("[summarize] news fetch failed", err);
-    return Response.json({ error: message }, { status });
+    return err instanceof NewsProviderError
+      ? errorResponse(err.code, err.message, err.status)
+      : errorResponse("news_unavailable", "Failed to fetch news", 502);
   }
 
   const encoder = new TextEncoder();
@@ -80,6 +78,7 @@ export async function POST(req: Request): Promise<Response> {
       if (articles.length === 0) {
         send({
           type: "error",
+          code: "no_articles",
           data: `No recent articles found for "${ticker.toUpperCase()}".`,
         });
         send({ type: "done" });
@@ -110,11 +109,11 @@ export async function POST(req: Request): Promise<Response> {
         }
 
         if (failed || !yielded) {
-          send({ type: "error", data: GENERIC_MODEL_ERROR });
+          send({ type: "error", code: "summary_failed", data: GENERIC_MODEL_ERROR });
         }
       } catch (err) {
         console.error("[summarize] handler error", err);
-        send({ type: "error", data: GENERIC_MODEL_ERROR });
+        send({ type: "error", code: "summary_failed", data: GENERIC_MODEL_ERROR });
       } finally {
         send({ type: "done" });
         controller.close();

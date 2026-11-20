@@ -130,7 +130,9 @@ The page is statically prerendered, so crawlers get real HTML.
 - Layout: hero + search → (after the first search) AI summary and chat side by side on desktop (`lg`), stacked on mobile → source articles → How it works + FAQ → footer. Result panels stay hidden until the first search.
 - News grid: 1/2/3 columns; when there are 2 or 5 articles the first card spans two columns so the grid has no holes; cards without an image get a placeholder when others have one, so heights line up.
 - The summary card sets the row height on desktop and the chat fills it, scrolling internally.
-- Theme: dark only. `globals.css` defines the shadcn/AI Elements tokens (`--primary`, `--secondary`, `--muted-foreground`, …) that the vendored components rely on.
+- Visual system: an editorial "financial paper" look — warm paper and ink, hairline rules, Newsreader serif for headlines and the summary (drop cap, numbered insights), Geist for UI and Geist Mono for tickers, dates and labels. One restrained accent; sentiment uses ▲/▼/■ glyphs plus words, never color alone. Light by default, dark via `prefers-color-scheme`.
+- Tokens: `globals.css` defines semantic colors (`paper`, `ink`, `ink-soft`, `subtle`, `rule`, `brand`, `up`, `down`, …) and maps the shadcn/AI Elements tokens onto them. Components use only these tokens. It also neutralizes shadcn's InputGroup dimming when merely the send button is disabled.
+- i18n: every user-visible string lives in `translations.ts` (EN/ES, parity enforced by a test). API errors carry a `code` (`lib/errors.ts`) that the UI translates at render time, so errors follow the language toggle. A summary keeps the language it was generated in; after a toggle the UI offers to regenerate it. Article text stays in the publisher's language.
 - Accessibility: axe WCAG 2.1 AA runs in E2E; touch targets ≥ 44px on mobile; `motion-reduce` respected on the main button; `<html lang>` follows the language toggle.
 
 ## 9. Testing strategy

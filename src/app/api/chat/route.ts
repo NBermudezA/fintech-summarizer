@@ -6,6 +6,7 @@ import {
 } from "ai";
 
 import { chatTools } from "./tools";
+import { errorResponse } from "@/lib/errors";
 import { isProviderConfigured, pickModel, providerOptions } from "@/lib/models";
 import { buildChatSystemPrompt } from "@/lib/prompts";
 import {
@@ -27,7 +28,7 @@ function textLength(message: { parts: Array<Record<string, unknown>> }): number 
 
 export async function POST(req: Request): Promise<Response> {
   if (!isAllowedOrigin(req)) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
+    return errorResponse("forbidden", "Forbidden", 403);
   }
   const rl = chatLimiter.check(clientKey(req));
   if (!rl.ok) return tooManyRequests(rl.retryAfterSeconds);
@@ -36,32 +37,33 @@ export async function POST(req: Request): Promise<Response> {
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return errorResponse("invalid_request", "Invalid JSON body", 400);
   }
 
   const parsed = chatRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json(
-      { error: "Invalid chat request", issues: parsed.error.flatten() },
-      { status: 400 },
-    );
+    return errorResponse("invalid_request", "Invalid chat request", 400, {
+      issues: parsed.error.flatten(),
+    });
   }
 
   const { messages, provider, language, ticker, articles, summary } =
     parsed.data;
 
   if (messages.some((m) => textLength(m) > MAX_CHAT_MESSAGE_CHARS)) {
-    return Response.json(
-      { error: `Messages are limited to ${MAX_CHAT_MESSAGE_CHARS} characters.` },
-      { status: 413 },
+    return errorResponse(
+      "message_too_long",
+      `Messages are limited to ${MAX_CHAT_MESSAGE_CHARS} characters.`,
+      413,
     );
   }
 
   if (!isProviderConfigured(provider)) {
     console.error(`[chat] provider "${provider}" has no API key`);
-    return Response.json(
-      { error: "The selected AI provider is not available." },
-      { status: 503 },
+    return errorResponse(
+      "provider_unavailable",
+      "The selected AI provider is not available.",
+      503,
     );
   }
 
@@ -82,13 +84,11 @@ export async function POST(req: Request): Promise<Response> {
     });
 
     return result.toUIMessageStreamResponse({
-      onError: () => "The assistant could not respond. Please try again.",
+      // The UI translates this code (see codeFromChatError).
+      onError: () => "chat_failed",
     });
   } catch (err) {
     console.error("[chat] handler error", err);
-    return Response.json(
-      { error: "Failed to process chat request" },
-      { status: 500 },
-    );
+    return errorResponse("chat_failed", "Failed to process chat request", 500);
   }
 }

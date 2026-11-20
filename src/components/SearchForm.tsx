@@ -76,12 +76,12 @@ export default function SearchForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="relative z-40 w-full rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-2 shadow-2xl shadow-emerald-500/5 backdrop-blur"
+      className="relative z-40 w-full"
     >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        <div className="relative flex-1 rounded-[3px] border border-ink bg-paper-raised focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand">
           <Search
-            className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-zinc-500"
+            className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-subtle"
             aria-hidden="true"
           />
           <input
@@ -93,7 +93,7 @@ export default function SearchForm({
             spellCheck={false}
             autoComplete="off"
             maxLength={10}
-            className="w-full rounded-xl bg-transparent py-3 pl-11 pr-32 text-base font-medium text-zinc-100 placeholder:text-zinc-500 focus:outline-none disabled:opacity-50"
+            className="w-full bg-transparent py-3.5 pl-11 pr-32 font-mono text-base font-medium uppercase tracking-wide text-ink placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-subtle focus:outline-none disabled:opacity-50"
             aria-label={t("tickerLabel")}
           />
 
@@ -107,7 +107,7 @@ export default function SearchForm({
               disabled={isLoading}
               aria-haspopup="listbox"
               aria-expanded={pickerOpen}
-              className="inline-flex items-center gap-1 rounded-lg bg-zinc-800/70 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-9 items-center gap-1 border-l border-rule px-3 text-xs font-medium uppercase tracking-wider text-ink-soft transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
             >
               {t("popularButton")}
               <ChevronDown
@@ -120,7 +120,7 @@ export default function SearchForm({
               <div
                 role="listbox"
                 aria-label={t("popularPanelLabel")}
-                className="absolute right-0 top-full z-50 mt-2 max-h-[min(26rem,60vh)] w-72 max-w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/60"
+                className="absolute right-0 top-full z-50 mt-3 max-h-[min(26rem,60vh)] w-72 max-w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain rounded-[3px] border border-ink bg-paper-raised shadow-xl shadow-black/10"
               >
                 <PickerGroup
                   label={t("stocksGroup")}
@@ -140,7 +140,7 @@ export default function SearchForm({
         <button
           type="submit"
           disabled={isLoading || ticker.trim().length === 0}
-          className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition-colors motion-reduce:transition-none hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+          className="min-h-12 rounded-[3px] bg-ink px-6 text-sm font-semibold uppercase tracking-wider text-paper transition-colors motion-reduce:transition-none hover:bg-ink-soft disabled:cursor-not-allowed disabled:bg-highlight disabled:text-subtle"
         >
           {isLoading ? t("analyzing") : t("analyze")}
         </button>
@@ -160,8 +160,8 @@ function PickerGroup({
 }) {
   if (tickers.length === 0) return null;
   return (
-    <div className="border-b border-zinc-800/80 last:border-b-0">
-      <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+    <div className="border-b border-rule last:border-b-0">
+      <div className="px-3 pb-1 pt-3 font-mono text-[11px] uppercase tracking-[0.18em] text-subtle">
         {label}
       </div>
       <ul className="pb-1">
@@ -172,10 +172,10 @@ function PickerGroup({
               role="option"
               aria-selected="false"
               onClick={() => onPick(tk.symbol)}
-              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left transition-colors hover:bg-zinc-800/60"
+              className="flex min-h-10 w-full items-center justify-between gap-3 px-3 py-2 text-left transition-colors hover:bg-highlight"
             >
-              <span className="text-sm text-zinc-200">{tk.name}</span>
-              <span className="font-mono text-xs text-emerald-300">
+              <span className="text-sm text-ink">{tk.name}</span>
+              <span className="font-mono text-xs font-medium text-brand">
                 {tk.symbol}
               </span>
             </button>

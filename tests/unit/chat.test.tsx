@@ -99,12 +99,24 @@ describe("Chat", () => {
 
   it("lets the user stop generation and shows errors", async () => {
     chatState.status = "streaming";
-    chatState.error = new Error("Rate limited");
+    chatState.error = new Error(JSON.stringify({ error: "Too many requests.", code: "rate_limited" }));
     const user = userEvent.setup();
-    renderChat();
-    expect(screen.getByText("Chat error: Rate limited")).toBeInTheDocument();
+    const { unmount } = renderChat();
+    expect(
+      screen.getByText("Chat error: Too many requests. Please wait a moment and try again."),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Chat input")).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Stop" }));
     expect(chatState.stop).toHaveBeenCalled();
+    unmount();
+
+    // In-stream errors arrive as a bare code; unknown text falls back to a generic message.
+    chatState.error = new Error("chat_failed");
+    const second = renderChat();
+    expect(screen.getByText("Chat error: The assistant could not respond. Please try again.")).toBeInTheDocument();
+    second.unmount();
+    chatState.error = new Error("socket hang up");
+    renderChat();
+    expect(screen.getByText("Chat error: The assistant could not respond. Please try again.")).toBeInTheDocument();
   });
 });

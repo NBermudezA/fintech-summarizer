@@ -106,12 +106,17 @@ test("full analysis flow: search → news → streamed summary → chat", async 
 
 test("API errors are shown to the user", async ({ page }) => {
   await page.route("**/api/summarize", (route) =>
-    route.fulfill({ status: 429, json: { error: "Too many requests. Please wait a moment and try again." } }),
+    route.fulfill({ status: 429, json: { error: "Too many requests.", code: "rate_limited" } }),
   );
   await page.goto("/");
   await page.getByLabel("Stock ticker symbol").fill("AAPL");
   await page.getByRole("button", { name: "Analyze" }).click();
-  await expect(page.getByText(/Too many requests/).first()).toBeVisible();
+  await expect(
+    page.getByText("Too many requests. Please wait a moment and try again.").first(),
+  ).toBeVisible();
+  // The same error follows the language toggle.
+  await page.getByRole("radio", { name: "ES" }).click();
+  await expect(page.getByText(/Demasiadas solicitudes/).first()).toBeVisible();
 });
 
 test("language toggle switches copy and <html lang>, and persists", async ({ page }) => {

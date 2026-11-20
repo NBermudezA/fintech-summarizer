@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Newspaper } from "lucide-react";
+import { ArrowUpRight, Newspaper } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -38,7 +38,7 @@ export default function NewsCard({
   const locale = language === "es" ? "es-ES" : "en-US";
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = Boolean(article.image) && !imageFailed;
-  const media = `relative -mx-5 -mt-5 mb-1 aspect-[21/9] overflow-hidden bg-zinc-900 sm:aspect-[16/9] ${
+  const media = `relative mb-1 aspect-[21/9] overflow-hidden rounded-[2px] bg-highlight sm:aspect-[16/9] ${
     featured ? "md:aspect-[21/9]" : ""
   }`;
 
@@ -47,7 +47,7 @@ export default function NewsCard({
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group flex h-full flex-col gap-3 overflow-hidden ${featured ? "md:col-span-2" : ""} rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 backdrop-blur transition-all hover:border-emerald-500/40 hover:bg-zinc-900/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400`}
+      className={`group flex h-full flex-col gap-3 border-t border-rule pt-4 ${featured ? "md:col-span-2" : ""}`}
     >
       {showImage ? (
         <div className={media}>
@@ -60,45 +60,39 @@ export default function NewsCard({
             unoptimized
             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
             referrerPolicy="no-referrer"
-            className="object-cover opacity-90 transition-opacity group-hover:opacity-100"
+            className="object-cover grayscale-[35%] transition-[filter] duration-300 group-hover:grayscale-0 motion-reduce:transition-none"
             onError={() => setImageFailed(true)}
           />
         </div>
       ) : placeholder ? (
-        <div
-          className={`${media} flex items-center justify-center bg-gradient-to-br from-emerald-950/60 via-zinc-900 to-zinc-950`}
-          aria-hidden="true"
-        >
-          <Newspaper className="size-8 text-emerald-500/40" />
+        <div className={`${media} flex items-center justify-center`} aria-hidden="true">
+          <Newspaper className="size-7 text-rule-strong" strokeWidth={1.25} />
         </div>
       ) : null}
-      <div className="flex items-center justify-between gap-3 text-xs">
-        <span className="truncate font-medium uppercase tracking-wide text-emerald-400/90">
-          {article.source.name}
-        </span>
-        <span className="shrink-0 text-zinc-500">
-          {formatDate(article.publishedAt, locale)}
-        </span>
+
+      <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.12em]">
+        <span className="truncate font-medium text-ink">{article.source.name}</span>
+        <span className="shrink-0 text-subtle">{formatDate(article.publishedAt, locale)}</span>
       </div>
 
       <h3
-        className={`font-semibold leading-snug text-zinc-100 group-hover:text-white ${
-          featured ? "text-base md:text-xl" : "text-base"
+        className={`text-balance font-serif font-medium leading-snug text-ink decoration-1 underline-offset-4 group-hover:underline ${
+          featured ? "text-xl md:text-3xl md:leading-tight" : "text-xl"
         }`}
       >
         {article.title}
       </h3>
 
       {article.description ? (
-        <p className="line-clamp-4 text-sm leading-relaxed text-zinc-400">
+        <p className="line-clamp-4 text-sm leading-relaxed text-ink-soft">
           {article.description}
         </p>
       ) : null}
 
-      <div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-zinc-500 transition-colors group-hover:text-emerald-400">
+      <div className="mt-auto flex items-center gap-1 text-xs font-medium text-subtle transition-colors group-hover:text-ink">
         {t("readArticle")}
         <span className="sr-only"> ({article.source.name})</span>
-        <ExternalLink className="size-3.5" aria-hidden="true" />
+        <ArrowUpRight className="size-3.5" aria-hidden="true" />
       </div>
     </a>
   );
