@@ -60,7 +60,7 @@ Sin problemas: no hay secretos en el código ni en el historial de git (solo el 
 ## Pendientes (ordenados por prioridad)
 
 1. ✅ `FINNHUB_API_KEY` agregada en Vercel. Opcional: borrar la variable antigua `NEWS_API_KEY`.
-2. **Validar en el preview** con tu clave: AAPL, NVDA, JPM, BTC, SOL y un símbolo desconocido. El cliente de Finnhub se probó con datos simulados del formato documentado, no contra la API real, porque aquí no hay clave.
+2. ✅ **Finnhub validado en producción** (AAPL, NVDA, MSFT, BTC). Su etiquetado por empresa es laxo (para NVDA traía SpaceX o BJ's Wholesale), así que se filtran los artículos que no nombran a la empresa.
 3. **Revisar Haiku 5.5 en el preview** (latencia y calidad). Para volver atrás: `ANTHROPIC_MODEL=claude-haiku-4-5-20251001`.
 4. ✅ **Límite de gasto**: producción usa una clave propia (`ANTHROPIC_PROD_KEY`) con límite en la consola de Anthropic; `ANTHROPIC_API_KEY` queda para desarrollo y previews.
 5. ✅ **Dominio**: `nicobermudez.com` (Cloudflare) → `fintech.nicobermudez.com` en Vercel, CNAME sin proxy, `fintech-summarizer.vercel.app` redirige con 308.

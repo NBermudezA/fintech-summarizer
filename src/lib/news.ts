@@ -9,6 +9,8 @@ import type { NewsArticle } from "@/lib/types";
 export const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 export const MAX_ARTICLES = 5;
 export const COMPANY_NEWS_LOOKBACK_DAYS = 7;
+/** Below this many on-topic articles, show the unfiltered feed instead. */
+export const MIN_RELEVANT_ARTICLES = 2;
 
 /** Raw Finnhub news item (company-news and market news share this shape). */
 interface RawArticle {
@@ -67,8 +69,44 @@ export function cryptoKeywords(ticker: string): string[] {
 export function mentions(article: RawArticle, keywords: string[]): boolean {
   const text = `${article.headline ?? ""} ${article.summary ?? ""}`;
   return keywords.some((k) =>
-    new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text),
+    new RegExp(`\\b${escapeRegExp(k)}\\b`, "i").test(text),
   );
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** "NVIDIA Corp" → "NVIDIA", "Alphabet Inc. Class A" → "Alphabet". */
+export function normalizeCompanyName(name: string): string {
+  let out = name.trim();
+  const suffix =
+    /[,\s]+(inc|corp|corporation|co|company|ltd|limited|plc|holdings?|group|sa|ag|nv|se|class [a-c])\.?$/i;
+  while (suffix.test(out)) out = out.replace(suffix, "").trim();
+  return out;
+}
+
+/** Names that identify a company in the press (popular-ticker aliases, else Finnhub's profile name). */
+export function companyNames(symbol: string, profileName?: string | null): string[] {
+  const known = POPULAR_TICKERS.find((t) => t.symbol === symbol.toUpperCase());
+  const names = known
+    ? [known.name.replace(/\s*\(.*\)\s*/, ""), ...(known.aliases ?? [])]
+    : profileName
+      ? [normalizeCompanyName(profileName)]
+      : [];
+  return [...new Set(names.filter((n) => n.length >= 2))];
+}
+
+/**
+ * Finnhub tags company news loosely (an NVDA query returns SpaceX or retail
+ * earnings stories), so keep articles whose headline/summary names the
+ * company. The symbol matches case-sensitively ("NOW" must not match "now");
+ * names match case-insensitively.
+ */
+export function mentionsCompany(article: RawArticle, symbol: string, names: string[]): boolean {
+  const text = `${article.headline ?? ""} ${article.summary ?? ""}`;
+  if (new RegExp(`\\b${escapeRegExp(symbol.toUpperCase())}\\b`).test(text)) return true;
+  return names.some((n) => new RegExp(`\\b${escapeRegExp(n)}\\b`, "i").test(text));
 }
 
 function isoDate(d: Date): string {
@@ -137,6 +175,27 @@ async function finnhubGet(
   return Array.isArray(json) ? (json as RawArticle[]) : [];
 }
 
+/** Company name from Finnhub's profile; null on any failure (filtering is best-effort). */
+async function fetchCompanyName(
+  symbol: string,
+  apiKey: string,
+  fetchImpl: typeof fetch,
+): Promise<string | null> {
+  try {
+    const url = new URL(`${FINNHUB_BASE_URL}/stock/profile2`);
+    url.searchParams.set("symbol", symbol);
+    const res = await fetchImpl(url, {
+      cache: "no-store",
+      headers: { "X-Finnhub-Token": apiKey },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { name?: unknown };
+    return typeof json?.name === "string" && json.name.trim() ? json.name : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchArticles(
   ticker: string,
   apiKey: string | undefined = process.env.FINNHUB_API_KEY,
@@ -150,13 +209,23 @@ export async function fetchArticles(
 
   if (!isCrypto(symbol)) {
     const from = new Date(now.getTime() - COMPANY_NEWS_LOOKBACK_DAYS * 86_400_000);
-    const company = await finnhubGet(
-      "/company-news",
-      { symbol, from: isoDate(from), to: isoDate(now) },
-      apiKey,
-      fetchImpl,
-    );
-    if (company.length > 0) return normalizeArticles(company);
+    const needsProfile = companyNames(symbol).length === 0;
+    const [company, profileName] = await Promise.all([
+      finnhubGet(
+        "/company-news",
+        { symbol, from: isoDate(from), to: isoDate(now) },
+        apiKey,
+        fetchImpl,
+      ),
+      needsProfile ? fetchCompanyName(symbol, apiKey, fetchImpl) : null,
+    ]);
+    if (company.length > 0) {
+      const names = companyNames(symbol, profileName);
+      const relevant = company.filter((a) => mentionsCompany(a, symbol, names));
+      return normalizeArticles(
+        relevant.length >= MIN_RELEVANT_ARTICLES ? relevant : company,
+      );
+    }
     // Unknown to Finnhub as a stock (e.g. DOGE): fall through to crypto news.
   }
 

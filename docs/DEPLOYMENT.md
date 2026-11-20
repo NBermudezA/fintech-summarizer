@@ -64,7 +64,7 @@ To move the app to another domain later, change `SITE_URL` in `src/lib/site.ts` 
 | Task | How |
 |---|---|
 | Check what the model receives / errors | Vercel → Logs; routes log with the `[summarize]`, `[chat]` and `[news]` prefixes |
-| Too many 429s from Finnhub | Free plan is 60 calls/min. Add caching of news per ticker (e.g. 5 min) or upgrade |
+| Too many 429s from Finnhub | Free plan is 60 calls/min. Each analysis uses 1 call (2 for tickers outside the popular list, which also fetch the company profile). Add caching of news per ticker (e.g. 5 min) or upgrade |
 | Global rate limit | Swap the `Map` in `src/lib/rate-limit.ts` for Upstash Redis (free tier) behind the same interface |
 | Change model | `ANTHROPIC_MODEL` env var, redeploy |
 | Dependency updates | `npm outdated`, update, then `npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run test:e2e` |
